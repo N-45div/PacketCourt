@@ -5,15 +5,11 @@ from pathlib import Path
 from tempfile import NamedTemporaryFile
 
 import gradio as gr
+import spaces
 import uvicorn
 from fastapi import FastAPI, File, UploadFile
 from fastapi.responses import HTMLResponse
 from pydantic import BaseModel
-
-try:
-    import spaces
-except ImportError:
-    spaces = None
 
 ROOT = Path(__file__).parent
 sys.path.insert(0, str(ROOT / "src"))
@@ -30,13 +26,7 @@ class AuditRequest(BaseModel):
     back_text: str
 
 
-def gpu_callback(function):
-    if spaces is None:
-        return function
-    return spaces.GPU(duration=180)(function)
-
-
-@gpu_callback
+@spaces.GPU(duration=180)
 def gpu_extract_label(image_path: str, side: str) -> str:
     return extract_with_vlm(image_path, side)
 
