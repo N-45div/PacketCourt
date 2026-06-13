@@ -13,12 +13,7 @@ from pydantic import BaseModel
 try:
     import spaces
 except ImportError:
-    class _SpacesFallback:
-        @staticmethod
-        def GPU(*_args, **_kwargs):
-            return lambda function: function
-
-    spaces = _SpacesFallback()
+    spaces = None
 
 ROOT = Path(__file__).parent
 sys.path.insert(0, str(ROOT / "src"))
@@ -35,7 +30,13 @@ class AuditRequest(BaseModel):
     back_text: str
 
 
-@spaces.GPU(duration=180)
+def gpu_callback(function):
+    if spaces is None:
+        return function
+    return spaces.GPU(duration=180)(function)
+
+
+@gpu_callback
 def gpu_extract_label(image_path: str, side: str) -> str:
     return extract_with_vlm(image_path, side)
 
@@ -55,6 +56,12 @@ def build_gradio_engine() -> gr.Blocks:
             [front, back],
             output,
         )
+        with gr.Row(visible=False):
+            probe_image = gr.Image(type="filepath")
+            probe_side = gr.Textbox(value="back")
+            probe_output = gr.Textbox()
+            probe_button = gr.Button("Run MiniCPM-V extraction")
+        probe_button.click(gpu_extract_label, [probe_image, probe_side], probe_output)
     return engine
 
 
