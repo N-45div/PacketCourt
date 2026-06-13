@@ -1,11 +1,11 @@
 from __future__ import annotations
 
-from enum import StrEnum
+from enum import Enum
 
 from pydantic import BaseModel, Field
 
 
-class Verdict(StrEnum):
+class Verdict(str, Enum):
     SUPPORTED = "SUPPORTED BY PROVIDED LABEL"
     CONTRADICTED = "CONTRADICTED BY PROVIDED LABEL"
     CONTEXT_MISSING = "TECHNICALLY TRUE, CONTEXT MISSING"
