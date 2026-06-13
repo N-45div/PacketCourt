@@ -28,7 +28,7 @@ preview($("#front-file"), $("#front-preview"));
 preview($("#back-file"), $("#back-preview"));
 
 async function runAudit(frontText, backText) {
-  const response = await fetch("/api/audit", {
+  const response = await fetch("api/audit", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ front_text: frontText, back_text: backText }),
@@ -83,7 +83,7 @@ $("#read-photos").addEventListener("click", async () => {
   if ($("#back-file").files[0]) form.append("back", $("#back-file").files[0]);
   $("#ocr-status").textContent = "Reading label evidence...";
   try {
-    const response = await fetch("/api/ocr", { method: "POST", body: form });
+    const response = await fetch("api/ocr", { method: "POST", body: form });
     const result = await response.json();
     $("#front-text").value = result.front.text;
     $("#back-text").value = result.back.text;
@@ -93,7 +93,7 @@ $("#read-photos").addEventListener("click", async () => {
 });
 
 async function loadSamples() {
-  const samples = await fetch("/api/samples").then((response) => response.json());
+  const samples = await fetch("api/samples").then((response) => response.json());
   $("#sample-grid").innerHTML = Object.entries(samples).map(([name, value]) => `
     <button class="sample-card" data-name="${escapeHtml(name)}"><b>${escapeHtml(name)}</b><span>${escapeHtml(value.front)}</span></button>
   `).join("");
@@ -106,4 +106,3 @@ async function loadSamples() {
   $("#hero-sample").addEventListener("click", () => { setMode("samples"); $("#workspace").scrollIntoView(); });
 }
 loadSamples();
-

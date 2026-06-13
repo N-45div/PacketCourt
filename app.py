@@ -7,7 +7,7 @@ from tempfile import NamedTemporaryFile
 import gradio as gr
 import uvicorn
 from fastapi import FastAPI, File, UploadFile
-from fastapi.responses import FileResponse
+from fastapi.responses import HTMLResponse
 from pydantic import BaseModel
 
 ROOT = Path(__file__).parent
@@ -44,19 +44,12 @@ def build_gradio_engine() -> gr.Blocks:
 app = FastAPI(title="PacketCourt")
 
 
-@app.get("/")
-def index() -> FileResponse:
-    return FileResponse(ROOT / "frontend" / "index.html")
-
-
-@app.get("/assets/styles.css")
-def styles() -> FileResponse:
-    return FileResponse(ROOT / "frontend" / "styles.css", media_type="text/css")
-
-
-@app.get("/assets/app.js")
-def javascript() -> FileResponse:
-    return FileResponse(ROOT / "frontend" / "app.js", media_type="text/javascript")
+@app.get("/", response_class=HTMLResponse)
+def index() -> str:
+    html = (ROOT / "frontend" / "index.html").read_text()
+    css = (ROOT / "frontend" / "styles.css").read_text()
+    javascript = (ROOT / "frontend" / "app.js").read_text()
+    return html.replace("/*__PACKETCOURT_CSS__*/", css).replace("/*__PACKETCOURT_JS__*/", javascript)
 
 
 @app.get("/api/samples")
