@@ -44,3 +44,39 @@ def test_fssai_claim_is_not_treated_as_health_endorsement():
     assert audit.verdict == Verdict.CONTEXT_MISSING
     assert "not a health endorsement" in audit.summary
 
+
+def test_whole_packet_nutrition_exposes_persuasion_gap():
+    result = audit_packet(
+        "HIGH PROTEIN",
+        (
+            "Ingredients: oats, sugar. Nutrition information per 100g: Protein 12g, "
+            "Total Sugars 22g, Sodium 410mg. Net weight 300g."
+        ),
+    )
+    assert result.whole_packet.total_sugar_g == 66
+    assert result.whole_packet.sugar_teaspoons == 16.5
+    assert result.whole_packet.sodium_mg == 1230
+    assert any("sugar" in finding.headline.lower() for finding in result.persuasion_gap)
+    assert any("sodium" in finding.headline.lower() for finding in result.persuasion_gap)
+
+
+def test_baked_and_whole_grain_claims_keep_material_context():
+    result = audit_packet(
+        "BAKED NOT FRIED | WHOLE GRAIN | ZERO TRANS FAT",
+        (
+            "Ingredients: refined wheat flour, whole wheat flour, oil, salt. "
+            "Nutrition per 100g: Sodium 780mg, Trans Fat 0g. Net weight 180g."
+        ),
+    )
+    assert by_claim(result, "Baked Not Fried").verdict == Verdict.CONTEXT_MISSING
+    assert by_claim(result, "Whole Grain").verdict == Verdict.CONTEXT_MISSING
+    assert by_claim(result, "Zero Trans Fat").verdict == Verdict.SUPPORTED
+    assert any("refined" in finding.quiet_context.lower() for finding in result.persuasion_gap)
+
+
+def test_after_opening_instruction_is_extracted():
+    result = audit_packet(
+        "NO PRESERVATIVES",
+        "Ingredients: tomato, salt. Use by: 08 JUL 2026. Consume within 3 days after opening.",
+    )
+    assert result.expiry.after_opening_instruction == "Consume within 3 days after opening"

@@ -51,20 +51,35 @@ function render(data) {
     ? data.claims.map((claim) => `
       <article class="claim-card ${verdictClass[claim.verdict]}">
         <div class="claim-top"><span class="claim-name">${escapeHtml(claim.claim)}</span><span class="verdict">${escapeHtml(claim.verdict)}</span></div>
+        <span class="confidence">Evidence confidence · ${escapeHtml(claim.confidence)}</span>
         <p class="summary">${escapeHtml(claim.summary)}</p>
         ${claim.evidence.map(evidenceHtml).join("")}
         ${claim.caveat ? `<p class="caveat">${escapeHtml(claim.caveat)}</p>` : ""}
       </article>`).join("")
     : `<article class="claim-card unknown"><span class="claim-name">No supported claim detected</span><p class="summary">Try High Protein, No Added Sugar, Multigrain, 100% Natural, FSSAI Approved, or No Preservatives.</p></article>`;
+  $("#gap-grid").innerHTML = data.persuasion_gap.length
+    ? data.persuasion_gap.map((finding) => `
+      <article class="gap-card ${escapeHtml(finding.severity)}">
+        <span class="gap-severity">${escapeHtml(finding.severity)} context gap</span>
+        <h4>${escapeHtml(finding.headline)}</h4>
+        <div class="gap-compare"><p><b>FRONT IMPRESSION</b>${escapeHtml(finding.front_impression)}</p><p><b>QUIET CONTEXT</b>${escapeHtml(finding.quiet_context)}</p></div>
+        ${finding.evidence.map(evidenceHtml).join("")}
+      </article>`).join("")
+    : `<article class="gap-empty"><b>No persuasion gap calculated</b><span>More complete nutrition, ingredient, or package-size evidence may be required.</span></article>`;
+  const packet = data.whole_packet;
   const facts = [
-    ["Basis", data.nutrition.basis],
-    ["Protein", data.nutrition.protein_g == null ? "Not found" : `${data.nutrition.protein_g}g`],
-    ["Total sugar", data.nutrition.total_sugar_g == null ? "Not found" : `${data.nutrition.total_sugar_g}g`],
-    ["Added sugar", data.nutrition.added_sugar_g == null ? "Not found" : `${data.nutrition.added_sugar_g}g`],
-    ["Sodium", data.nutrition.sodium_mg == null ? "Not found" : `${data.nutrition.sodium_mg}mg`],
+    ["Declared basis", data.nutrition.basis],
+    ["Packet size", data.nutrition.package_size_g == null ? "Not found" : `${data.nutrition.package_size_g}g`],
+    ["Whole-packet protein", packet.protein_g == null ? "Not calculable" : `${packet.protein_g}g`],
+    ["Whole-packet total sugar", packet.total_sugar_g == null ? "Not calculable" : `${packet.total_sugar_g}g`],
+    ["Sugar equivalent", packet.sugar_teaspoons == null ? "Not calculable" : `≈ ${packet.sugar_teaspoons} tsp`],
+    ["Whole-packet sodium", packet.sodium_mg == null ? "Not calculable" : `${packet.sodium_mg}mg`],
   ];
   $("#nutrition-grid").innerHTML = facts.map(([key, value]) => `<div><span>${key}</span><b>${value}</b></div>`).join("");
   $("#expiry-status").textContent = data.expiry.status;
+  $("#opening-status").textContent = data.expiry.after_opening_instruction
+    ? `After opening: ${data.expiry.after_opening_instruction}`
+    : "No after-opening deadline found.";
   $("#raw-json").textContent = JSON.stringify(data, null, 2);
   $("#results").classList.remove("hidden");
   $("#results").scrollIntoView({ behavior: "smooth" });

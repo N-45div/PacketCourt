@@ -4,7 +4,7 @@ import calendar
 import re
 from datetime import date
 
-from .models import ExpiryInfo, NutritionFacts
+from .models import ExpiryInfo, NutritionFacts, WholePacketNutrition
 
 
 CLAIM_PATTERNS: list[tuple[str, str]] = [
@@ -14,6 +14,9 @@ CLAIM_PATTERNS: list[tuple[str, str]] = [
     ("100% Natural", r"\b100\s*%\s*natural\b"),
     ("FSSAI Approved", r"\bfssai[\s-]*approved\b"),
     ("No Preservatives", r"\bno[\s-]*preservatives?\b"),
+    ("Baked Not Fried", r"\bbaked[\s,/-]*not[\s-]*fried\b"),
+    ("Zero Trans Fat", r"\b(?:zero|0)\s*(?:g\s*)?trans[\s-]*fat\b"),
+    ("Whole Grain", r"\b(?:made\s+with\s+)?whole[\s-]*grains?\b"),
 ]
 
 
@@ -49,6 +52,38 @@ def parse_nutrition(back_text: str) -> NutritionFacts:
         added_sugar_g=_number_after(r"added\s*sugars?", text, "g"),
         sodium_mg=_number_after("sodium", text, "mg"),
         saturated_fat_g=_number_after(r"saturated\s*fat", text, "g"),
+    )
+
+
+def calculate_whole_packet(nutrition: NutritionFacts) -> WholePacketNutrition:
+    multiplier = None
+    explanation = "Package size and nutrition basis are required."
+    if nutrition.package_size_g and nutrition.basis == "per 100g":
+        multiplier = nutrition.package_size_g / 100
+        explanation = f"Calculated from {nutrition.basis} values across a {nutrition.package_size_g:g}g packet."
+    elif nutrition.package_size_g and nutrition.serving_size_g and nutrition.basis == "per serving":
+        multiplier = nutrition.package_size_g / nutrition.serving_size_g
+        explanation = (
+            f"Calculated from {nutrition.basis} values across approximately {multiplier:.1f} servings "
+            f"in a {nutrition.package_size_g:g}g packet."
+        )
+    if multiplier is None:
+        return WholePacketNutrition(explanation=explanation)
+
+    def scale(value: float | None) -> float | None:
+        return round(value * multiplier, 1) if value is not None else None
+
+    total_sugar = scale(nutrition.total_sugar_g)
+    return WholePacketNutrition(
+        calculable=True,
+        multiplier=round(multiplier, 2),
+        protein_g=scale(nutrition.protein_g),
+        total_sugar_g=total_sugar,
+        added_sugar_g=scale(nutrition.added_sugar_g),
+        sugar_teaspoons=round(total_sugar / 4, 1) if total_sugar is not None else None,
+        sodium_mg=scale(nutrition.sodium_mg),
+        saturated_fat_g=scale(nutrition.saturated_fat_g),
+        explanation=explanation,
     )
 
 
@@ -132,10 +167,15 @@ def parse_expiry(back_text: str) -> ExpiryInfo:
     else:
         status = "No resolvable best-before date found"
 
+    after_opening_match = re.search(
+        r"\b(?:consume|use)\s+within\s+\d+\s+(?:hours?|days?|weeks?)\s+(?:after|of)\s+opening\b",
+        text,
+        re.IGNORECASE,
+    )
     return ExpiryInfo(
         packed_on=packed.isoformat() if packed else None,
         best_before=best_before.isoformat() if best_before else None,
         instruction=instruction,
+        after_opening_instruction=after_opening_match.group(0) if after_opening_match else None,
         status=status,
     )
-
