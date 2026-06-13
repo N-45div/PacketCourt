@@ -1,0 +1,123 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f4efe4">
+  <title>PacketCourt</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:wght@700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/assets/styles.css">
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="#"><span class="brand-mark">PC</span><span>PacketCourt</span></a>
+    <div class="top-status"><span class="pulse"></span> Evidence engine online</div>
+    <a class="engine-link" href="/engine/" target="_blank">Gradio engine <span>↗</span></a>
+  </header>
+
+  <main>
+    <section class="hero">
+      <div class="hero-copy">
+        <p class="kicker">INDIAN PACKET CLAIM AUDITOR</p>
+        <h1>The packet<br><em>takes the stand.</em></h1>
+        <p class="hero-text">Photograph the front and back. PacketCourt tests marketing claims against the evidence printed on the same package.</p>
+        <div class="hero-actions">
+          <button class="button primary" data-scroll="workspace">Audit a packet <span>→</span></button>
+          <button class="button quiet" id="hero-sample">Try prepared evidence</button>
+        </div>
+      </div>
+      <div class="hero-visual" aria-hidden="true">
+        <div class="packet packet-back">
+          <span>INGREDIENTS</span><i></i><i></i><i></i><i></i>
+          <b>NUTRITION<br>FACTS</b>
+        </div>
+        <div class="packet packet-front">
+          <span>THE<br>GOOD<br>SNACK</span>
+          <strong>HIGH<br>PROTEIN</strong>
+          <small>100% NATURAL</small>
+        </div>
+        <div class="stamp">EVIDENCE<br>REQUIRED</div>
+      </div>
+    </section>
+
+    <section class="trust-strip">
+      <div><b>01</b><span>No unexplained health score</span></div>
+      <div><b>02</b><span>Every verdict cites label evidence</span></div>
+      <div><b>03</b><span>Uncertainty is shown, never hidden</span></div>
+    </section>
+
+    <section class="workspace" id="workspace">
+      <div class="section-heading">
+        <div><p class="kicker">OPEN A CASE</p><h2>Submit the packet's testimony.</h2></div>
+        <p>Use photos for local OCR, paste text directly, or load a prepared case.</p>
+      </div>
+
+      <div class="mode-switch" role="tablist">
+        <button class="active" data-mode="photos">01 · Photos</button>
+        <button data-mode="text">02 · Label text</button>
+        <button data-mode="samples">03 · Prepared cases</button>
+      </div>
+
+      <div class="mode-panel active" id="mode-photos">
+        <div class="upload-grid">
+          <label class="upload-card">
+            <input type="file" id="front-file" accept="image/*" capture="environment">
+            <div class="upload-preview" id="front-preview"><span class="upload-icon">F</span></div>
+            <div><b>Front of packet</b><span>Claims, badges and promises</span></div>
+            <strong>Choose photo</strong>
+          </label>
+          <label class="upload-card">
+            <input type="file" id="back-file" accept="image/*" capture="environment">
+            <div class="upload-preview" id="back-preview"><span class="upload-icon">B</span></div>
+            <div><b>Back of packet</b><span>Ingredients, nutrition and dates</span></div>
+            <strong>Choose photo</strong>
+          </label>
+        </div>
+        <button class="button dark wide" id="read-photos">Read both label photos <span>→</span></button>
+        <p class="status-line" id="ocr-status">Images stay inside this private Space while the case is processed.</p>
+      </div>
+
+      <div class="mode-panel" id="mode-text">
+        <div class="text-grid">
+          <label><span>Front claims</span><textarea id="front-text" placeholder="HIGH PROTEIN · MULTIGRAIN · 100% NATURAL"></textarea></label>
+          <label><span>Back-label evidence</span><textarea id="back-text" placeholder="Ingredients, nutrition panel, FSSAI license and date text..."></textarea></label>
+        </div>
+        <button class="button primary wide" id="audit-text">Put this packet on trial <span>→</span></button>
+      </div>
+
+      <div class="mode-panel" id="mode-samples">
+        <div class="sample-grid" id="sample-grid"></div>
+      </div>
+    </section>
+
+    <section class="results hidden" id="results">
+      <div class="case-header">
+        <div><p class="kicker">CASE FINDINGS</p><h2>What the front says.<br>What the back proves.</h2></div>
+        <div class="case-score"><span id="claim-count">0</span><small>CLAIMS<br>EXAMINED</small></div>
+      </div>
+      <div class="claim-grid" id="claim-grid"></div>
+      <div class="evidence-summary">
+        <article><p class="kicker">NUTRITION EVIDENCE</p><div id="nutrition-grid"></div></article>
+        <article class="date-card"><p class="kicker">DATE EVIDENCE</p><h3 id="expiry-status"></h3><p>Expiry interpretation is evidence, not a food-safety guarantee.</p></article>
+      </div>
+      <details><summary>View machine-readable evidence case</summary><pre id="raw-json"></pre></details>
+    </section>
+
+    <section class="method">
+      <p class="kicker">THE STANDARD OF PROOF</p>
+      <h2>PacketCourt refuses to guess.</h2>
+      <div class="method-grid">
+        <div><span>SUPPORTED</span><p>The supplied back label provides direct evidence.</p></div>
+        <div><span>CONTRADICTED</span><p>The supplied evidence conflicts with the front claim.</p></div>
+        <div><span>CONTEXT MISSING</span><p>The claim may be true, but material context is quiet.</p></div>
+        <div><span>CANNOT VERIFY</span><p>The packet has not supplied enough evidence.</p></div>
+      </div>
+    </section>
+  </main>
+  <footer><span>PacketCourt · Built Small 2026</span><span>Evidence analysis, not medical or legal advice.</span></footer>
+  <script src="/assets/app.js"></script>
+</body>
+</html>
+

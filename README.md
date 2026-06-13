@@ -27,6 +27,7 @@ verdicts instead of an unexplained health score.
 ## Current MVP
 
 - Reads front and back label photos with local OCR.
+- Serves a fully custom responsive product interface with a mounted Gradio engine.
 - Detects six common front claims.
 - Links claims to ingredients, nutrition, FSSAI license, and expiry evidence.
 - Resolves relative dates such as `best before 6 months from packaging`.
