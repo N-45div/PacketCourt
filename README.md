@@ -45,6 +45,7 @@ python app.py
 
 ```bash
 pytest
+python scripts/evaluate.py
 ```
 
 ## Model Plan
