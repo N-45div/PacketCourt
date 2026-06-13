@@ -6,16 +6,6 @@ from pathlib import Path
 
 MODEL_ID = os.getenv("PACKETCOURT_MODEL_ID", "openbmb/MiniCPM-V-4.6")
 
-try:
-    import spaces
-except ImportError:
-    class _SpacesFallback:
-        @staticmethod
-        def GPU(*_args, **_kwargs):
-            return lambda function: function
-
-    spaces = _SpacesFallback()
-
 PROMPTS = {
     "front": (
         "Transcribe the visible marketing claims on this food packet front. "
@@ -59,7 +49,6 @@ def model_status() -> dict[str, str | bool]:
     }
 
 
-@spaces.GPU(duration=180)
 def extract_with_vlm(image_path: str, side: str) -> str:
     processor, model = _load_model()
     messages = [

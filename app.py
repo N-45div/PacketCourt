@@ -10,6 +10,16 @@ from fastapi import FastAPI, File, UploadFile
 from fastapi.responses import HTMLResponse
 from pydantic import BaseModel
 
+try:
+    import spaces
+except ImportError:
+    class _SpacesFallback:
+        @staticmethod
+        def GPU(*_args, **_kwargs):
+            return lambda function: function
+
+    spaces = _SpacesFallback()
+
 ROOT = Path(__file__).parent
 sys.path.insert(0, str(ROOT / "src"))
 
@@ -17,11 +27,17 @@ from packetcourt import audit_packet
 from packetcourt.ocr import extract_text
 from packetcourt.samples import SAMPLES
 from packetcourt.vlm import model_status
+from packetcourt.vlm import extract_with_vlm
 
 
 class AuditRequest(BaseModel):
     front_text: str
     back_text: str
+
+
+@spaces.GPU(duration=180)
+def gpu_extract_label(image_path: str, side: str) -> str:
+    return extract_with_vlm(image_path, side)
 
 
 def build_gradio_engine() -> gr.Blocks:
@@ -79,7 +95,7 @@ async def ocr(front: UploadFile | None = File(default=None), back: UploadFile | 
         with NamedTemporaryFile(suffix=suffix) as temp:
             temp.write(await upload.read())
             temp.flush()
-            text, status = extract_text(temp.name, name)
+            text, status = extract_text(temp.name, name, gpu_extract_label)
         result[name] = {"text": text, "status": status}
     return result
 

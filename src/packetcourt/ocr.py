@@ -7,12 +7,12 @@ from PIL import Image
 from .vlm import extract_with_vlm, is_enabled
 
 
-def extract_text(image_path: str | None, side: str = "back") -> tuple[str, str]:
+def extract_text(image_path: str | None, side: str = "back", vlm_extractor=None) -> tuple[str, str]:
     if not image_path:
         return "", "No image supplied."
     if is_enabled():
         try:
-            text = extract_with_vlm(image_path, side)
+            text = (vlm_extractor or extract_with_vlm)(image_path, side)
             if text:
                 return text, "Read with OpenBMB MiniCPM-V-4.6. Verify extracted evidence against the packet."
         except Exception as exc:
