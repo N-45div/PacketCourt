@@ -121,3 +121,7 @@ async function loadSamples() {
   $("#hero-sample").addEventListener("click", () => { setMode("samples"); $("#workspace").scrollIntoView(); });
 }
 loadSamples();
+
+fetch("api/model").then((response) => response.json()).then((status) => {
+  $("#model-mode").textContent = status.enabled ? "MiniCPM-V evidence engine online" : "Deterministic evidence engine online";
+}).catch(() => {});

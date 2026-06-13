@@ -16,6 +16,7 @@ sys.path.insert(0, str(ROOT / "src"))
 from packetcourt import audit_packet
 from packetcourt.ocr import extract_text
 from packetcourt.samples import SAMPLES
+from packetcourt.vlm import model_status
 
 
 class AuditRequest(BaseModel):
@@ -57,6 +58,11 @@ def samples() -> dict:
     return SAMPLES
 
 
+@app.get("/api/model")
+def model() -> dict:
+    return model_status()
+
+
 @app.post("/api/audit")
 def audit(request: AuditRequest) -> dict:
     return audit_packet(request.front_text, request.back_text).model_dump(mode="json")
@@ -73,7 +79,7 @@ async def ocr(front: UploadFile | None = File(default=None), back: UploadFile | 
         with NamedTemporaryFile(suffix=suffix) as temp:
             temp.write(await upload.read())
             temp.flush()
-            text, status = extract_text(temp.name)
+            text, status = extract_text(temp.name, name)
         result[name] = {"text": text, "status": status}
     return result
 

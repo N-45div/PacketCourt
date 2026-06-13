@@ -27,6 +27,7 @@ verdicts instead of an unexplained health score.
 ## Current MVP
 
 - Reads front and back label photos with local OCR.
+- Uses OpenBMB `MiniCPM-V-4.6` for local vision extraction when `PACKETCOURT_VLM=1`, with Tesseract fallback.
 - Serves a fully custom responsive product interface with a mounted Gradio engine.
 - Detects six common front claims.
 - Links claims to ingredients, nutrition, FSSAI license, and expiry evidence.
