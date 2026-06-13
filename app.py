@@ -115,7 +115,7 @@ CSS = """
 """
 
 
-with gr.Blocks(title="PacketCourt") as demo:
+with gr.Blocks(css=CSS, title="PacketCourt") as demo:
     gr.HTML(
         """
         <section class="hero">
@@ -161,4 +161,4 @@ with gr.Blocks(title="PacketCourt") as demo:
     audit_button.click(render_report, [front_text, back_text], [report, raw_json])
 
 if __name__ == "__main__":
-    demo.launch(css=CSS)
+    demo.launch()

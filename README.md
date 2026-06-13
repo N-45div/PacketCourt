@@ -4,7 +4,7 @@ emoji: ⚖️
 colorFrom: yellow
 colorTo: red
 sdk: gradio
-sdk_version: 6.0.1
+sdk_version: 5.49.1
 app_file: app.py
 pinned: false
 license: mit
@@ -63,4 +63,3 @@ It audits only the supplied label evidence and exposes uncertainty explicitly.
 The repository is being built with OpenAI Codex as the primary coding agent.
 Codex is responsible for the initial architecture, deterministic audit engine,
 tests, Gradio application, and deployment workflow.
-
