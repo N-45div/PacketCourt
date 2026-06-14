@@ -80,6 +80,14 @@ class InvestigationPlan(BaseModel):
     router_model: str = "deterministic fallback"
 
 
+class AgentReview(BaseModel):
+    status: str = "NOT_REQUESTED"
+    priority: str = ""
+    evidence_request: str = ""
+    rationale: str = ""
+    model: str = ""
+
+
 class PacketAudit(BaseModel):
     claims: list[ClaimAudit]
     nutrition: NutritionFacts
@@ -91,3 +99,4 @@ class PacketAudit(BaseModel):
     back_text: str
     limitations: list[str]
     investigation: InvestigationPlan
+    agent_review: AgentReview = Field(default_factory=AgentReview)

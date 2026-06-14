@@ -87,3 +87,4 @@ def test_investigation_requests_missing_evidence_and_stops_explicitly():
     assert any(step.tool == "inspect_nutrition" for step in result.investigation.steps)
     assert any("nutrition panel" in item.lower() for item in result.investigation.missing_evidence)
     assert "missing-evidence" in result.investigation.stop_reason
+    assert result.agent_review.status == "NOT_REQUESTED"

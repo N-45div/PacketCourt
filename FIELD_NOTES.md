@@ -35,6 +35,10 @@ The system deliberately separates three responsibilities:
 The models can read and route an investigation. They cannot silently invent a
 nutrition value or override the evidence standard.
 
+NVIDIA `Nemotron-Mini-4B-Instruct` performs a second, independent review after
+the investigation plan completes. It can identify the highest-priority missing
+evidence, but it cannot alter PacketCourt's deterministic verdict.
+
 ## What the investigation agent does
 
 Each packet creates a claim-dependent investigation plan. A `NO ADDED SUGAR`
@@ -62,6 +66,15 @@ a stratified held-out split. PacketCourt only enables the router after its
 measured result is recorded in the model card and its suggestions remain
 bounded by deterministic policy fallbacks.
 
+## A failed Nemotron deployment
+
+The first NVIDIA reviewer used `NVIDIA-Nemotron-3-Nano-4B-BF16`. A real
+ZeroGPU probe failed because the hybrid Mamba runtime required a specialized
+CUDA build unavailable in the standard Gradio image. Rather than claim a model
+that did not run, PacketCourt switched to `Nemotron-Mini-4B-Instruct`. The
+replacement completed a real ZeroGPU evidence-gap review before it was
+connected to the product.
+
 ## Persuasion Gap
 
 Claim verification alone was not enough. A `HIGH PROTEIN` claim can be
@@ -79,6 +92,7 @@ the decision with the user.
 - `10` transparent investigation traces are exported.
 - The vision model has `1.30B` parameters.
 - The fine-tuned evidence router has approximately `4.4M` parameters.
+- The independent NVIDIA Nemotron reviewer has approximately `4B` parameters.
 - The complete product interface is responsive and built on Gradio.
 
 ## What PacketCourt refuses to claim

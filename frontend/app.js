@@ -59,6 +59,12 @@ function render(data) {
   $("#missing-evidence").textContent = data.investigation.missing_evidence.length
     ? data.investigation.missing_evidence.join(" · ")
     : "None. The required evidence path completed.";
+  const review = data.agent_review;
+  $("#nemotron-review").innerHTML = review.status === "NOT_REQUESTED"
+    ? ""
+    : `<b>NVIDIA NEMOTRON INDEPENDENT REVIEW · ${escapeHtml(review.status)}</b>
+       <strong>${escapeHtml(review.priority || "No additional action requested.")}</strong>
+       <span>${escapeHtml(review.evidence_request || review.rationale)}</span>`;
   $("#claim-grid").innerHTML = data.claims.length
     ? data.claims.map((claim) => `
       <article class="claim-card ${verdictClass[claim.verdict]}">

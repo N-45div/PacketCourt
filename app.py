@@ -17,6 +17,8 @@ sys.path.insert(0, str(ROOT / "src"))
 from packetcourt import audit_packet
 from packetcourt.ocr import extract_text
 from packetcourt.remote_vision import extract_remote, is_configured
+from packetcourt.remote_nemotron import is_configured as nemotron_is_configured
+from packetcourt.remote_nemotron import review as nemotron_review
 from packetcourt.samples import SAMPLES
 from packetcourt.vlm import model_status
 
@@ -24,6 +26,29 @@ from packetcourt.vlm import model_status
 class AuditRequest(BaseModel):
     front_text: str
     back_text: str
+
+
+def run_audit(front_text: str, back_text: str):
+    result = audit_packet(front_text, back_text)
+    if not nemotron_is_configured():
+        return result
+    snapshot = {
+        "claims": [claim.model_dump(mode="json") for claim in result.claims],
+        "investigation": result.investigation.model_dump(),
+        "nutrition": result.nutrition.model_dump(),
+        "ingredients_found": bool(result.ingredients),
+        "expiry": result.expiry.model_dump(),
+        "limitations": result.limitations,
+    }
+    try:
+        result.agent_review = nemotron_review(snapshot)
+    except Exception as exc:
+        result.agent_review = {
+            "status": "UNAVAILABLE",
+            "rationale": f"Nemotron review unavailable: {type(exc).__name__}",
+            "model": "nvidia/Nemotron-Mini-4B-Instruct",
+        }
+    return result
 
 
 def build_gradio_engine() -> gr.Blocks:
@@ -37,7 +62,7 @@ def build_gradio_engine() -> gr.Blocks:
         back = gr.Textbox(label="Back-label evidence")
         output = gr.JSON(label="Evidence case")
         gr.Button("Audit").click(
-            lambda front_text, back_text: audit_packet(front_text, back_text).model_dump(mode="json"),
+            lambda front_text, back_text: run_audit(front_text, back_text).model_dump(mode="json"),
             [front, back],
             output,
         )
@@ -68,6 +93,11 @@ def model() -> dict:
         if os.getenv("PACKETCOURT_ROUTER", "0") == "1"
         else "deterministic fallback"
     )
+    status["nemotron_reviewer"] = (
+        "nvidia/Nemotron-Mini-4B-Instruct"
+        if nemotron_is_configured()
+        else "not configured"
+    )
     if is_configured():
         status.update(
             enabled=True,
@@ -79,7 +109,7 @@ def model() -> dict:
 
 @app.post("/api/audit")
 def audit(request: AuditRequest) -> dict:
-    return audit_packet(request.front_text, request.back_text).model_dump(mode="json")
+    return run_audit(request.front_text, request.back_text).model_dump(mode="json")
 
 
 @app.post("/api/ocr")

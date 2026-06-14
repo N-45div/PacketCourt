@@ -12,6 +12,7 @@ tags:
   - track:backyard
   - sponsor:openbmb
   - sponsor:openai
+  - sponsor:nvidia
   - achievement:offbrand
   - achievement:tiny
   - achievement:sharing
@@ -55,6 +56,8 @@ flowchart LR
     M --> A["Investigation agent"]
     A --> FR["Fine-tuned evidence router<br/>4.4M parameters"]
     FR --> A
+    A --> NV["NVIDIA Nemotron Mini 4B<br/>Independent evidence-gap reviewer"]
+    NV --> A
     A --> P["Deterministic evidence parser<br/>CPU"]
     P --> C["Claim-to-evidence audit"]
     P --> N["Whole-packet nutrition math"]
@@ -75,10 +78,11 @@ flowchart LR
 
 Photo transcription uses the 1.30B-parameter OpenBMB `MiniCPM-V-4.6` through
 a private ZeroGPU companion. A fine-tuned 4.4M-parameter evidence router
-selects the investigation tools required by each claim. The main CPU Space
-performs deterministic evidence auditing, whole-packet calculations,
-persuasion-gap analysis, and refusals. ZeroGPU is requested only while reading
-photos.
+selects the investigation tools required by each claim. NVIDIA
+`Nemotron-Mini-4B-Instruct` independently reviews the completed investigation
+for evidence gaps. The main CPU Space performs deterministic evidence auditing,
+whole-packet calculations, persuasion-gap analysis, and refusals. ZeroGPU is
+requested only while running the vision witness or Nemotron reviewer.
 
 ## What It Audits
 
@@ -150,11 +154,13 @@ Current deterministic evaluation result:
 
 - Main private product: https://huggingface.co/spaces/build-small-hackathon/packetcourt
 - Private OpenBMB ZeroGPU vision companion: https://huggingface.co/spaces/build-small-hackathon/packetcourt-vision
+- Private NVIDIA Nemotron reviewer: https://huggingface.co/spaces/build-small-hackathon/packetcourt-nemotron
 - Private golden evaluation dataset: https://huggingface.co/datasets/build-small-hackathon/packetcourt-golden-cases
 - Public transparent agent traces: https://huggingface.co/datasets/build-small-hackathon/packetcourt-traces
 - Fine-tuned evidence router: https://huggingface.co/build-small-hackathon/packetcourt-evidence-router
 - Public router training set: https://huggingface.co/datasets/build-small-hackathon/packetcourt-router-training
 - Public Field Notes report: https://huggingface.co/datasets/build-small-hackathon/packetcourt-field-notes
+- Public Codex-attributed GitHub repository: https://github.com/N-45div/PacketCourt
 
 ## Safety Boundary
 
