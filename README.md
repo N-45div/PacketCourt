@@ -13,6 +13,8 @@ tags:
   - sponsor:openbmb
   - sponsor:openai
   - achievement:offbrand
+  - achievement:tiny
+  - achievement:sharing
   - build-small-hackathon
 ---
 
@@ -57,6 +59,17 @@ Phase 2 integrates OpenBMB's 1.3B-parameter `MiniCPM-V-4.6` for evidence-region
 discovery and OCR correction, plus a fine-tuned `MiniCPM5-1B` for constrained
 claim-to-evidence mapping. Deterministic code remains responsible for numeric
 calculations and final verdict triggers.
+
+## Live Architecture
+
+- Main private product: https://huggingface.co/spaces/build-small-hackathon/packetcourt
+- Private OpenBMB ZeroGPU vision companion: https://huggingface.co/spaces/build-small-hackathon/packetcourt-vision
+- Private golden evaluation dataset: https://huggingface.co/datasets/build-small-hackathon/packetcourt-golden-cases
+- Private transparent trace dataset: https://huggingface.co/datasets/build-small-hackathon/packetcourt-traces
+
+Photo transcription uses the 1.30B-parameter OpenBMB `MiniCPM-V-4.6` on
+ZeroGPU. The main CPU Space performs deterministic evidence auditing,
+whole-packet calculations, persuasion-gap analysis, and refusals.
 
 ## Safety Boundary
 
