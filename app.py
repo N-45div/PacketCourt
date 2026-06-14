@@ -63,6 +63,11 @@ def samples() -> dict:
 @app.get("/api/model")
 def model() -> dict:
     status = model_status()
+    status["router"] = (
+        os.getenv("PACKETCOURT_ROUTER_MODEL", "build-small-hackathon/packetcourt-evidence-router")
+        if os.getenv("PACKETCOURT_ROUTER", "0") == "1"
+        else "deterministic fallback"
+    )
     if is_configured():
         status.update(
             enabled=True,

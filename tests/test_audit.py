@@ -80,3 +80,10 @@ def test_after_opening_instruction_is_extracted():
         "Ingredients: tomato, salt. Use by: 08 JUL 2026. Consume within 3 days after opening.",
     )
     assert result.expiry.after_opening_instruction == "Consume within 3 days after opening"
+
+
+def test_investigation_requests_missing_evidence_and_stops_explicitly():
+    result = audit_packet("HIGH PROTEIN", "Protein 9g.")
+    assert any(step.tool == "inspect_nutrition" for step in result.investigation.steps)
+    assert any("nutrition panel" in item.lower() for item in result.investigation.missing_evidence)
+    assert "missing-evidence" in result.investigation.stop_reason

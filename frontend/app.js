@@ -47,6 +47,18 @@ function escapeHtml(value = "") {
 
 function render(data) {
   $("#claim-count").textContent = data.claims.length;
+  $("#router-model").textContent = data.investigation.router_model;
+  $("#agent-steps").innerHTML = data.investigation.steps.map((step, index) => `
+    <article>
+      <span>${String(index + 1).padStart(2, "0")}</span>
+      <div><b>${escapeHtml(step.tool.replaceAll("_", " "))}</b><p>${escapeHtml(step.reason)}</p></div>
+      <small>${escapeHtml(step.source)} · ${escapeHtml(step.status)}</small>
+    </article>
+  `).join("");
+  $("#stop-reason").textContent = data.investigation.stop_reason;
+  $("#missing-evidence").textContent = data.investigation.missing_evidence.length
+    ? data.investigation.missing_evidence.join(" · ")
+    : "None. The required evidence path completed.";
   $("#claim-grid").innerHTML = data.claims.length
     ? data.claims.map((claim) => `
       <article class="claim-card ${verdictClass[claim.verdict]}">

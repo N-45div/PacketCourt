@@ -65,6 +65,21 @@ class ExpiryInfo(BaseModel):
     status: str = "Not enough label evidence"
 
 
+class InvestigationStep(BaseModel):
+    tool: str
+    reason: str
+    status: str
+    source: str = "policy"
+
+
+class InvestigationPlan(BaseModel):
+    objective: str
+    steps: list[InvestigationStep] = Field(default_factory=list)
+    missing_evidence: list[str] = Field(default_factory=list)
+    stop_reason: str
+    router_model: str = "deterministic fallback"
+
+
 class PacketAudit(BaseModel):
     claims: list[ClaimAudit]
     nutrition: NutritionFacts
@@ -75,3 +90,4 @@ class PacketAudit(BaseModel):
     front_text: str
     back_text: str
     limitations: list[str]
+    investigation: InvestigationPlan

@@ -15,10 +15,14 @@ size_categories:
 
 # PacketCourt Transparent Traces
 
-Transparent PacketCourt runs showing the evidence pipeline from front-claim
-detection through deterministic verdicts, whole-packet arithmetic, persuasion
-gap findings, and date resolution.
+Transparent PacketCourt investigation-agent runs showing the evidence pipeline
+from claim-dependent tool planning through deterministic verdicts,
+whole-packet arithmetic, persuasion-gap findings, and date resolution.
 
 These traces contain no hidden chain-of-thought. They expose auditable tool and
-decision outputs suitable for debugging and evaluation.
+decision outputs suitable for debugging and evaluation. Each trace records:
 
+- the investigation objective and selected evidence tools;
+- whether a tool came from the fine-tuned router or policy fallback;
+- explicit missing-evidence requests and stop reason;
+- extracted evidence, calculations, verdicts, and safety limitations.

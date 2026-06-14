@@ -3,6 +3,7 @@ from __future__ import annotations
 import re
 
 from .models import ClaimAudit, Evidence, PacketAudit, PersuasionFinding, Verdict
+from .investigator import build_investigation
 from .parser import calculate_whole_packet, extract_claims, extract_ingredients, parse_expiry, parse_nutrition
 
 
@@ -266,4 +267,10 @@ def audit_packet(front_text: str, back_text: str) -> PacketAudit:
         front_text=front_text,
         back_text=back_text,
         limitations=limitations,
+        investigation=build_investigation(
+            [claim.claim for claim in claim_audits],
+            ingredients,
+            nutrition,
+            expiry,
+        ),
     )

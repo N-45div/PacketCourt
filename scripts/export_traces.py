@@ -23,6 +23,7 @@ def main() -> None:
                 "case_id": case["id"],
                 "input": {"front_text": case["front_text"], "back_text": case["back_text"]},
                 "steps": [
+                    {"name": "plan_investigation", "output": audit.investigation.model_dump()},
                     {"name": "detect_front_claims", "output": [claim.claim for claim in audit.claims]},
                     {"name": "extract_back_evidence", "output": {"ingredients": audit.ingredients, "nutrition": audit.nutrition.model_dump()}},
                     {"name": "calculate_whole_packet", "output": audit.whole_packet.model_dump()},
@@ -39,4 +40,3 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
-
