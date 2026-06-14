@@ -49,7 +49,10 @@ flowchart LR
     Z --> V
     V -->|"Label transcription"| M
 
-    M --> P["Deterministic evidence parser<br/>CPU"]
+    M --> A["Investigation agent"]
+    A --> FR["Fine-tuned evidence router<br/>4.4M parameters"]
+    FR --> A
+    A --> P["Deterministic evidence parser<br/>CPU"]
     P --> C["Claim-to-evidence audit"]
     P --> N["Whole-packet nutrition math"]
     P --> D["Expiry and date arithmetic"]
@@ -68,9 +71,11 @@ flowchart LR
 ```
 
 Photo transcription uses the 1.30B-parameter OpenBMB `MiniCPM-V-4.6` through
-a private ZeroGPU companion. The main CPU Space performs deterministic
-evidence auditing, whole-packet calculations, persuasion-gap analysis, and
-refusals. ZeroGPU is requested only while reading photos.
+a private ZeroGPU companion. A fine-tuned 4.4M-parameter evidence router
+selects the investigation tools required by each claim. The main CPU Space
+performs deterministic evidence auditing, whole-packet calculations,
+persuasion-gap analysis, and refusals. ZeroGPU is requested only while reading
+photos.
 
 ## What It Audits
 
@@ -133,16 +138,20 @@ python scripts/export_traces.py
 
 Current deterministic evaluation result:
 
-- `8` unit tests passing
+- `9` unit tests passing
 - `35/35` golden-case checks passing across `10` cases
 - `10` transparent traces exported
+- `1.000` held-out accuracy on the stratified evidence-router evaluation
 
 ## Live Assets
 
 - Main private product: https://huggingface.co/spaces/build-small-hackathon/packetcourt
 - Private OpenBMB ZeroGPU vision companion: https://huggingface.co/spaces/build-small-hackathon/packetcourt-vision
 - Private golden evaluation dataset: https://huggingface.co/datasets/build-small-hackathon/packetcourt-golden-cases
-- Private transparent trace dataset: https://huggingface.co/datasets/build-small-hackathon/packetcourt-traces
+- Public transparent agent traces: https://huggingface.co/datasets/build-small-hackathon/packetcourt-traces
+- Fine-tuned evidence router: https://huggingface.co/build-small-hackathon/packetcourt-evidence-router
+- Public router training set: https://huggingface.co/datasets/build-small-hackathon/packetcourt-router-training
+- [Field Notes](FIELD_NOTES.md)
 
 ## Safety Boundary
 
