@@ -4,7 +4,7 @@ emoji: 👁️
 colorFrom: yellow
 colorTo: red
 sdk: gradio
-sdk_version: 5.49.1
+sdk_version: 6.18.0
 app_file: app.py
 pinned: false
 license: apache-2.0
@@ -24,4 +24,3 @@ transcribe only visible evidence from front and back food-package photos.
 
 The main PacketCourt product applies deterministic claim auditing, arithmetic,
 and refusal rules after transcription.
-
