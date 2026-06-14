@@ -34,15 +34,15 @@ def load_model():
 
 
 @spaces.GPU(duration=180)
-def extract_label(image, side: str) -> str:
-    if image is None:
+def extract_label(image_path: str | None, side: str) -> str:
+    if image_path is None:
         return "No image supplied."
     processor, model = load_model()
     messages = [
         {
             "role": "user",
             "content": [
-                {"type": "image", "image": image},
+                {"type": "image", "url": image_path},
                 {"type": "text", "text": PROMPTS[side]},
             ],
         }
@@ -54,7 +54,7 @@ def extract_label(image, side: str) -> str:
         return_dict=True,
         return_tensors="pt",
         downsample_mode="4x",
-        max_slice_nums=16,
+        max_slice_nums=36,
     ).to(model.device)
     generated = model.generate(**inputs, max_new_tokens=512, do_sample=False)
     trimmed = [output[len(source) :] for source, output in zip(inputs.input_ids, generated)]
@@ -64,7 +64,7 @@ def extract_label(image, side: str) -> str:
 demo = gr.Interface(
     fn=extract_label,
     inputs=[
-        gr.Image(type="pil", label="Packet label photo"),
+        gr.Image(type="filepath", label="Packet label photo"),
         gr.Radio(["front", "back"], value="back", label="Packet side"),
     ],
     outputs=gr.Textbox(label="Visible label evidence"),
@@ -75,4 +75,3 @@ demo = gr.Interface(
 
 if __name__ == "__main__":
     demo.launch()
-
