@@ -14,9 +14,12 @@ def _client():
     from gradio_client import Client
 
     try:
-        return Client(os.environ["PACKETCOURT_NEMOTRON_SPACE"], hf_token=os.getenv("HF_TOKEN"))
-    except TypeError:
-        return Client(os.environ["PACKETCOURT_NEMOTRON_SPACE"], token=os.getenv("HF_TOKEN"))
+        return Client(os.environ["PACKETCOURT_NEMOTRON_SPACE"])
+    except Exception:
+        try:
+            return Client(os.environ["PACKETCOURT_NEMOTRON_SPACE"], hf_token=os.getenv("HF_TOKEN"))
+        except TypeError:
+            return Client(os.environ["PACKETCOURT_NEMOTRON_SPACE"], token=os.getenv("HF_TOKEN"))
 
 
 def review(snapshot: dict) -> dict:
