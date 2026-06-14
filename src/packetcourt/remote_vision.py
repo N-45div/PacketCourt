@@ -14,7 +14,7 @@ def _client():
 
     return Client(
         os.environ["PACKETCOURT_VISION_SPACE"],
-        token=os.getenv("HF_TOKEN"),
+        hf_token=os.getenv("HF_TOKEN"),
     )
 
 
@@ -25,4 +25,3 @@ def extract_remote(image_path: str, side: str) -> str:
     if result.startswith("PACKETCOURT_VISION_ERROR:"):
         raise RuntimeError(result.splitlines()[0])
     return result.strip()
-
