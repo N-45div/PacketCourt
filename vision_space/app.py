@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import traceback
 from functools import lru_cache
 
 import gradio as gr
@@ -37,28 +38,31 @@ def load_model():
 def extract_label(image_path: str | None, side: str) -> str:
     if image_path is None:
         return "No image supplied."
-    processor, model = load_model()
-    messages = [
-        {
-            "role": "user",
-            "content": [
-                {"type": "image", "url": image_path},
-                {"type": "text", "text": PROMPTS[side]},
-            ],
-        }
-    ]
-    inputs = processor.apply_chat_template(
-        messages,
-        tokenize=True,
-        add_generation_prompt=True,
-        return_dict=True,
-        return_tensors="pt",
-        downsample_mode="4x",
-        max_slice_nums=36,
-    ).to(model.device)
-    generated = model.generate(**inputs, max_new_tokens=512, do_sample=False)
-    trimmed = [output[len(source) :] for source, output in zip(inputs.input_ids, generated)]
-    return processor.batch_decode(trimmed, skip_special_tokens=True, clean_up_tokenization_spaces=False)[0].strip()
+    try:
+        processor, model = load_model()
+        messages = [
+            {
+                "role": "user",
+                "content": [
+                    {"type": "image", "url": image_path},
+                    {"type": "text", "text": PROMPTS[side]},
+                ],
+            }
+        ]
+        inputs = processor.apply_chat_template(
+            messages,
+            tokenize=True,
+            add_generation_prompt=True,
+            return_dict=True,
+            return_tensors="pt",
+            downsample_mode="4x",
+            max_slice_nums=36,
+        ).to(model.device)
+        generated = model.generate(**inputs, downsample_mode="4x", max_new_tokens=512, do_sample=False)
+        trimmed = [output[len(source) :] for source, output in zip(inputs.input_ids, generated)]
+        return processor.batch_decode(trimmed, skip_special_tokens=True, clean_up_tokenization_spaces=False)[0].strip()
+    except Exception as exc:
+        return f"PACKETCOURT_VISION_ERROR: {type(exc).__name__}: {exc}\n{traceback.format_exc(limit=4)}"
 
 
 demo = gr.Interface(
