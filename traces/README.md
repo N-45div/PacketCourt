@@ -26,3 +26,7 @@ decision outputs suitable for debugging and evaluation. Each trace records:
 - whether a tool came from the fine-tuned router or policy fallback;
 - explicit missing-evidence requests and stop reason;
 - extracted evidence, calculations, verdicts, and safety limitations.
+
+`nemotron_live_review.json` records a real end-to-end review from the private
+NVIDIA Nemotron Mini 4B ZeroGPU companion. It demonstrates that Nemotron can
+review evidence gaps but cannot alter deterministic verdicts.

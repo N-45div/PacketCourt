@@ -1,0 +1,29 @@
+{
+  "trace_id": "trace-nemotron-live-001",
+  "input": {
+    "front_text": "HIGH PROTEIN 100% NATURAL",
+    "back_text": "Ingredients: oats, sugar, salt. Nutrition per 100g: Protein 12g, Total Sugars 22g. Net weight 300g."
+  },
+  "fine_tuned_router": {
+    "model": "build-small-hackathon/packetcourt-evidence-router",
+    "status": "active"
+  },
+  "nemotron_review": {
+    "status": "COMPLETE",
+    "priority": "Verify the '100% Natural' claim against the evidence printed on the same packet.",
+    "evidence_request": "",
+    "rationale": "PacketCourt cannot verify an absolute naturalness claim based on the front claim alone.",
+    "model": "nvidia/Nemotron-Mini-4B-Instruct"
+  },
+  "deterministic_verdicts": [
+    {
+      "claim": "High Protein",
+      "verdict": "TECHNICALLY TRUE, CONTEXT MISSING"
+    },
+    {
+      "claim": "100% Natural",
+      "verdict": "CANNOT VERIFY"
+    }
+  ],
+  "boundary": "Nemotron reviews evidence gaps but cannot alter deterministic verdicts."
+}
