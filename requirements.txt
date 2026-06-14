@@ -1,11 +1,7 @@
 gradio==5.49.1
+gradio_client==1.13.3
 pillow>=11.0.0
 pydantic>=2.10.0
 pytesseract>=0.3.13
 python-multipart>=0.0.20
 uvicorn>=0.34.0
-accelerate>=1.6.0
-av>=14.0.0
-torch>=2.8.0
-torchvision>=0.23.0
-transformers>=5.7.0

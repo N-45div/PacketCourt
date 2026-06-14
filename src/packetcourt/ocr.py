@@ -10,11 +10,11 @@ from .vlm import extract_with_vlm, is_enabled
 def extract_text(image_path: str | None, side: str = "back", vlm_extractor=None) -> tuple[str, str]:
     if not image_path:
         return "", "No image supplied."
-    if is_enabled():
+    if is_enabled() or vlm_extractor is not None:
         try:
             text = (vlm_extractor or extract_with_vlm)(image_path, side)
             if text:
-                return text, "Read with OpenBMB MiniCPM-V-4.6. Verify extracted evidence against the packet."
+                return text, "Read with OpenBMB MiniCPM-V-4.6 on ZeroGPU. Verify extracted evidence against the packet."
         except Exception as exc:
             vlm_error = f"MiniCPM-V extraction failed ({type(exc).__name__}); "
         else:

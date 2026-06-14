@@ -5,7 +5,6 @@ from pathlib import Path
 from tempfile import NamedTemporaryFile
 
 import gradio as gr
-import spaces
 import uvicorn
 from fastapi import FastAPI, File, UploadFile
 from fastapi.responses import HTMLResponse
@@ -16,19 +15,14 @@ sys.path.insert(0, str(ROOT / "src"))
 
 from packetcourt import audit_packet
 from packetcourt.ocr import extract_text
+from packetcourt.remote_vision import extract_remote, is_configured
 from packetcourt.samples import SAMPLES
 from packetcourt.vlm import model_status
-from packetcourt.vlm import extract_with_vlm
 
 
 class AuditRequest(BaseModel):
     front_text: str
     back_text: str
-
-
-@spaces.GPU(duration=180)
-def gpu_extract_label(image_path: str, side: str) -> str:
-    return extract_with_vlm(image_path, side)
 
 
 def build_gradio_engine() -> gr.Blocks:
@@ -46,12 +40,6 @@ def build_gradio_engine() -> gr.Blocks:
             [front, back],
             output,
         )
-        with gr.Row(visible=False):
-            probe_image = gr.Image(type="filepath")
-            probe_side = gr.Textbox(value="back")
-            probe_output = gr.Textbox()
-            probe_button = gr.Button("Run MiniCPM-V extraction")
-        probe_button.click(gpu_extract_label, [probe_image, probe_side], probe_output)
     return engine
 
 
@@ -73,7 +61,14 @@ def samples() -> dict:
 
 @app.get("/api/model")
 def model() -> dict:
-    return model_status()
+    status = model_status()
+    if is_configured():
+        status.update(
+            enabled=True,
+            mode="OpenBMB MiniCPM-V-4.6 ZeroGPU extraction with deterministic audit",
+            companion=os.getenv("PACKETCOURT_VISION_SPACE"),
+        )
+    return status
 
 
 @app.post("/api/audit")
@@ -92,7 +87,7 @@ async def ocr(front: UploadFile | None = File(default=None), back: UploadFile | 
         with NamedTemporaryFile(suffix=suffix) as temp:
             temp.write(await upload.read())
             temp.flush()
-            text, status = extract_text(temp.name, name, gpu_extract_label)
+            text, status = extract_text(temp.name, name, extract_remote if is_configured() else None)
         result[name] = {"text": text, "status": status}
     return result
 
