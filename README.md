@@ -15,6 +15,9 @@ tags:
   - achievement:offbrand
   - achievement:tiny
   - achievement:sharing
+  - achievement:agent
+  - achievement:fieldnotes
+  - achievement:welltuned
   - build-small-hackathon
 ---
 
@@ -151,7 +154,7 @@ Current deterministic evaluation result:
 - Public transparent agent traces: https://huggingface.co/datasets/build-small-hackathon/packetcourt-traces
 - Fine-tuned evidence router: https://huggingface.co/build-small-hackathon/packetcourt-evidence-router
 - Public router training set: https://huggingface.co/datasets/build-small-hackathon/packetcourt-router-training
-- [Field Notes](FIELD_NOTES.md)
+- Public Field Notes report: https://huggingface.co/datasets/build-small-hackathon/packetcourt-field-notes
 
 ## Safety Boundary
 

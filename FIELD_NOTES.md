@@ -1,3 +1,11 @@
+---
+license: cc-by-4.0
+tags:
+  - build-small-hackathon
+  - field-notes
+  - packetcourt
+---
+
 # Field Notes: Building PacketCourt
 
 ## The packet takes the stand
