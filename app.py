@@ -6,7 +6,6 @@ from pathlib import Path
 from tempfile import NamedTemporaryFile
 
 import gradio as gr
-import uvicorn
 from fastapi import FastAPI, File, UploadFile
 from fastapi.responses import HTMLResponse
 from pydantic import BaseModel
@@ -129,7 +128,3 @@ async def ocr(front: UploadFile | None = File(default=None), back: UploadFile | 
 
 
 app = gr.mount_gradio_app(app, build_gradio_engine(), path="/engine")
-
-
-if __name__ == "__main__":
-    uvicorn.run(app, host="0.0.0.0", port=7860)
