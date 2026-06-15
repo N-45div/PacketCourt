@@ -30,6 +30,8 @@ PacketCourt audits front-of-pack marketing claims against evidence printed on
 the same Indian packaged-food label. It produces traceable, conservative
 verdicts instead of an unexplained health score.
 
+**Open PacketCourt:** https://build-small-hackathon-packetcourt.hf.space/
+
 ## Why PacketCourt
 
 A packet may lead with `HIGH PROTEIN`, `MULTIGRAIN`, or `100% NATURAL` while
@@ -152,10 +154,11 @@ Current deterministic evaluation result:
 
 ## Live Assets
 
-- Main private product: https://huggingface.co/spaces/build-small-hackathon/packetcourt
-- Private OpenBMB ZeroGPU vision companion: https://huggingface.co/spaces/build-small-hackathon/packetcourt-vision
-- Private NVIDIA Nemotron reviewer: https://huggingface.co/spaces/build-small-hackathon/packetcourt-nemotron
-- Private golden evaluation dataset: https://huggingface.co/datasets/build-small-hackathon/packetcourt-golden-cases
+- Public direct app: https://build-small-hackathon-packetcourt.hf.space/
+- Main Gradio Space: https://huggingface.co/spaces/build-small-hackathon/packetcourt
+- Public OpenBMB ZeroGPU vision companion: https://huggingface.co/spaces/build-small-hackathon/packetcourt-vision
+- Public NVIDIA Nemotron reviewer: https://huggingface.co/spaces/build-small-hackathon/packetcourt-nemotron
+- Public golden evaluation dataset: https://huggingface.co/datasets/build-small-hackathon/packetcourt-golden-cases
 - Public transparent agent traces: https://huggingface.co/datasets/build-small-hackathon/packetcourt-traces
 - Fine-tuned evidence router: https://huggingface.co/build-small-hackathon/packetcourt-evidence-router
 - Public router training set: https://huggingface.co/datasets/build-small-hackathon/packetcourt-router-training
