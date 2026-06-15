@@ -32,6 +32,8 @@ verdicts instead of an unexplained health score.
 
 **Open PacketCourt:** https://build-small-hackathon-packetcourt.hf.space/
 
+**Read the Community Article:** https://huggingface.co/blog/build-small-hackathon/packetcourtarticle
+
 PacketCourt also includes a correction-driven Community Review Agent. User
 feedback is bundled with the original evidence, investigation path, and
 Nemotron review in a public queue. To prevent feedback poisoning, corrections
@@ -85,7 +87,7 @@ flowchart LR
 ```
 
 Photo transcription uses the 1.30B-parameter OpenBMB `MiniCPM-V-4.6` through
-a private ZeroGPU companion. A fine-tuned 4.4M-parameter evidence router
+a public ZeroGPU companion. A fine-tuned 4.4M-parameter evidence router
 selects the investigation tools required by each claim. NVIDIA
 `Nemotron-Mini-4B-Instruct` independently reviews the completed investigation
 for evidence gaps. The main CPU Space performs deterministic evidence auditing,

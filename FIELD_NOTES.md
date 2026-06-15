@@ -55,6 +55,19 @@ The agent stops in one of two explicit states:
 Every plan, tool decision, evidence extraction, calculation, verdict, and
 limitation is exported as a trace.
 
+## Real packets broke the two-photo assumption
+
+A real packet quickly showed that front-and-back capture was too neat an
+abstraction. Claims, dates, directions, ingredients, and nutrition tables can
+wrap across several panels. PacketCourt now accepts additive multi-angle phone
+capture, labels each transcription by photo number, merges unique evidence,
+and skips exact duplicate transcriptions.
+
+The same test exposed table-style OCR such as `Protein (g) 12` and
+`Sodium | mg | 410`. The deterministic parser was expanded to recover those
+rows while explicitly explaining when OCR found a nutrition basis and packet
+size but omitted the nutrient quantities needed for arithmetic.
+
 ## A failed first fine-tune
 
 The first evidence-router training run reached only `0.40` held-out accuracy.
@@ -85,11 +98,24 @@ back-label context that competes with the impression emphasized on the front.
 This is not a health score. The output cites the exact calculation and leaves
 the decision with the user.
 
+## Community learning without silent self-training
+
+Users can confirm an audit or submit an evidence-backed correction through the
+Community Review Agent. Each review preserves the original evidence,
+investigation path, and Nemotron review in a public queue.
+
+Feedback is not automatically trusted. New records remain in
+`pending_human_review` with `training_eligible: false` until the supplied packet
+evidence is checked. Approved cases can enter a versioned router-training
+release and must pass the golden-case suite before deployment.
+
 ## Current evidence
 
-- `9` unit tests pass.
+- `20` unit and end-to-end integration tests pass.
 - `35/35` golden-case checks pass across `10` packet cases.
 - `10` transparent investigation traces are exported.
+- Multi-angle packet capture and exact-duplicate removal run publicly.
+- A public correction-driven learning queue contains real review records.
 - The vision model has `1.30B` parameters.
 - The fine-tuned evidence router has approximately `4.4M` parameters.
 - The independent NVIDIA Nemotron reviewer has approximately `4B` parameters.

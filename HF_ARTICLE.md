@@ -9,10 +9,11 @@ licensing text, dates, and instructions that only matter after opening.
 
 PacketCourt is my attempt to make those two surfaces answer to each other.
 
-It is a phone-first Gradio app for Indian packaged-food labels. A user
-photographs the front and back of a packet. PacketCourt reads the visible text,
-plans an evidence investigation, performs deterministic calculations, and
-returns conservative verdicts with citations.
+It is a phone-first Gradio app for Indian packaged-food labels. A user can add
+multiple front, back, and side-panel photographs when a packet wraps evidence
+around its dimensions. PacketCourt reads each photo independently, labels and
+merges the visible evidence, plans an investigation, performs deterministic
+calculations, and returns conservative verdicts with citations.
 
 It does not produce a health score. It asks a narrower question:
 
@@ -56,7 +57,7 @@ code where exactness is required.
 
 ```mermaid
 flowchart LR
-    Phone["Phone or desktop<br/>front + back photos"] --> App["PacketCourt<br/>custom Gradio app"]
+    Phone["Phone or desktop<br/>multi-angle packet photos"] --> App["PacketCourt<br/>custom Gradio app"]
     App --> Vision["OpenBMB MiniCPM-V-4.6<br/>1.30B visual witness"]
     Vision --> Agent["Evidence investigation agent"]
     Agent --> Router["Fine-tuned PacketCourt router<br/>4.38M parameters"]
@@ -65,14 +66,18 @@ flowchart LR
     Nemotron --> Agent
     Agent --> Judge["Deterministic evidence judge"]
     Judge --> Report["Verdicts, citations,<br/>calculations, and trace"]
+    Report --> Feedback["Community Review Agent"]
+    Feedback --> Queue["Public approval-gated<br/>learning queue"]
 ```
 
 ### OpenBMB MiniCPM-V-4.6: the visual witness
 
-The vision companion runs privately on ZeroGPU. It receives a packet image and
-transcribes only visibly printed evidence. The front prompt focuses on claims.
-The back prompt focuses on ingredients, nutrition values and basis, net weight,
-FSSAI license text, dates, and after-opening instructions.
+The vision companion runs on ZeroGPU. It receives up to six front/side and six
+back/side images and transcribes only visibly printed evidence. PacketCourt
+labels every transcription by photo number, merges unique evidence, and skips
+exact duplicates. The front prompt focuses on claims. The back prompt preserves
+ingredients, every visible nutrition-table row and basis, net weight, FSSAI
+license text, dates, and after-opening instructions.
 
 The model is asked not to explain or infer. Its responsibility is to surface
 what is visible for the next stage.
@@ -99,7 +104,9 @@ After balancing the claim variants and using a stratified five-class holdout,
 the corrected checkpoint reached `1.000` on the small held-out set. That result
 is useful evidence that the routing task is learnable, not proof of broad
 generalization. Deterministic policy fallback remains available when the model
-cannot load.
+cannot load. Real packet testing later exposed new routes such as `SUGAR FREE`,
+`REAL BADAM`, and `EXTRA CALCIUM WITH DHA`; those reviewed cases were added to
+the public training set and the router was fine-tuned again.
 
 Model: https://huggingface.co/build-small-hackathon/packetcourt-evidence-router
 
@@ -113,7 +120,9 @@ After the investigation plan completes, NVIDIA
 It can identify the highest-priority next action or confirm that the bounded
 investigation is complete.
 
-It cannot change a verdict.
+It cannot change a verdict or manufacture a required-evidence state outside
+PacketCourt's deterministic investigation. Companion responses cross a typed
+`AgentReview` boundary before they can appear in the product.
 
 This separation matters. A language model is useful for reviewing whether the
 investigation overlooked an evidence gap. It should not silently override
@@ -131,9 +140,10 @@ The final verdict path is ordinary Python.
 
 That code:
 
-- detects known front claims;
+- detects known and meaningful previously unseen front claims;
 - extracts ingredients;
-- parses nutrition values and their declared basis;
+- parses nutrition values and their declared basis, including table-style OCR
+  such as `Protein (g) 12` and `Sodium | mg | 410`;
 - calculates whole-packet protein, sugar, sodium, and saturated fat;
 - converts total sugar into a teaspoon equivalent;
 - resolves direct and relative best-before dates;
@@ -166,6 +176,22 @@ Examples include:
 Each finding cites the exact evidence or calculation. PacketCourt still leaves
 the final decision with the user.
 
+## A correction-driven learning loop
+
+PacketCourt now includes a Community Review Agent. After an audit, a user can
+confirm the result or submit an evidence-backed correction. The review is
+bundled with the original label text, verdicts, investigation path, and
+Nemotron review in a public queue.
+
+Feedback does not immediately retrain production models. That would allow an
+accidental or malicious correction to poison later audits. New records begin
+as `pending_human_review` and `training_eligible: false`. Approved corrections
+can enter a versioned router-training release, followed by fine-tuning and the
+golden-case regression suite before deployment.
+
+Community feedback queue:
+https://huggingface.co/datasets/build-small-hackathon/packetcourt-community-feedback
+
 ## What makes the agent bounded
 
 For every packet, PacketCourt emits an explicit investigation record:
@@ -195,11 +221,13 @@ https://huggingface.co/datasets/build-small-hackathon/packetcourt-traces
 
 The current release has:
 
-- `9` passing unit tests;
+- `20` passing unit and end-to-end integration tests;
 - `35/35` passing checks across `10` golden packet cases;
 - `10` transparent investigation traces;
 - one published real end-to-end Nemotron review trace;
-- a successful live audit using the fine-tuned router and Nemotron reviewer.
+- successful live audits using the fine-tuned router and Nemotron reviewer;
+- a real public Community Review Agent record;
+- multi-angle packet-photo ingestion with duplicate removal.
 
 The golden cases cover contradictions, supported claims, missing context,
 whole-packet calculations, refined-grain context, FSSAI registration language,
@@ -212,9 +240,12 @@ https://huggingface.co/datasets/build-small-hackathon/packetcourt-golden-cases
 
 PacketCourt uses a custom responsive frontend mounted over a Gradio engine.
 The phone workflow matters because the packet is physically in the user's
-hand. The results view shows the investigation path before the verdict cards,
-then separates persuasion gaps, claim findings, nutrition calculations, date
-evidence, and machine-readable JSON.
+hand. Some packets place claims, ingredients, dates, directions, and nutrition
+on different wrapped panels, so the interface supports additive multi-angle
+capture rather than assuming two perfect photos. The results view shows the
+investigation path before the verdict cards, then separates persuasion gaps,
+claim findings, nutrition calculations, date evidence, machine-readable JSON,
+and the community review path.
 
 Uncertainty is not hidden in a tooltip. It is part of the primary result.
 
