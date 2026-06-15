@@ -179,3 +179,9 @@ def test_one_character_ocr_claim_mismatch_is_surfaced_conservatively():
     assert claim.confidence == "low"
     assert any(evidence.text == "Badam" for evidence in claim.evidence)
     assert result.ingredients[0] == "Maltodextrin (65%)"
+
+
+def test_no_claims_reports_router_not_invoked_instead_of_fallback():
+    result = audit_packet("PRODUCT NAME", "Ingredients: oats.")
+    assert result.claims == []
+    assert result.investigation.router_model == "not invoked: no auditable front claims detected"

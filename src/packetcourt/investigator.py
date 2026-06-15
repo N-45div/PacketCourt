@@ -37,7 +37,7 @@ def build_investigation(
     steps: list[InvestigationStep] = []
     missing: list[str] = []
     seen: set[str] = set()
-    router_model = "deterministic fallback"
+    router_model = "not invoked: no auditable front claims detected" if not claim_names else "deterministic fallback"
 
     for claim in claim_names:
         routed_tool, source = route_claim(claim)
