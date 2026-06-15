@@ -52,7 +52,8 @@ def run_audit(front_text: str, back_text: str):
     }
     try:
         result.agent_review = AgentReview.model_validate(nemotron_review(snapshot))
-        if result.agent_review.status == "COMPLETE" and not result.investigation.missing_evidence:
+        if not result.investigation.missing_evidence:
+            result.agent_review.status = "COMPLETE"
             result.agent_review.priority = "No additional claim-resolving evidence is required."
             result.agent_review.evidence_request = ""
     except Exception as exc:
