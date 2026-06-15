@@ -154,7 +154,7 @@ python scripts/export_traces.py
 
 Current deterministic evaluation result:
 
-- `9` unit tests passing
+- `20` unit and end-to-end integration tests passing
 - `35/35` golden-case checks passing across `10` cases
 - `10` transparent traces exported
 - `1.000` held-out accuracy on the stratified evidence-router evaluation
