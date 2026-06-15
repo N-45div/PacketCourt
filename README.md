@@ -9,17 +9,15 @@ app_file: app.py
 pinned: false
 license: mit
 tags:
+  - build-small-hackathon
   - track:backyard
   - sponsor:openbmb
   - sponsor:openai
   - sponsor:nvidia
-  - achievement:offbrand
-  - achievement:tiny
-  - achievement:sharing
-  - achievement:agent
-  - achievement:fieldnotes
   - achievement:welltuned
-  - build-small-hackathon
+  - achievement:offbrand
+  - achievement:sharing
+  - achievement:fieldnotes
 ---
 
 # PacketCourt
@@ -160,7 +158,7 @@ python scripts/export_traces.py
 
 Current deterministic evaluation result:
 
-- `20` unit and end-to-end integration tests passing
+- `21` unit and end-to-end integration tests passing
 - `35/35` golden-case checks passing across `10` cases
 - `10` transparent traces exported
 - `1.000` held-out accuracy on the stratified evidence-router evaluation
