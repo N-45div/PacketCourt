@@ -56,6 +56,10 @@ def run_audit(front_text: str, back_text: str):
             result.agent_review.status = "COMPLETE"
             result.agent_review.priority = "No additional claim-resolving evidence is required."
             result.agent_review.evidence_request = ""
+            result.agent_review.rationale = (
+                "Nemotron completed an independent review; PacketCourt's bounded investigation "
+                "found no unresolved evidence required for the detected front claims."
+            )
     except Exception as exc:
         result.agent_review = AgentReview(
             status="UNAVAILABLE",

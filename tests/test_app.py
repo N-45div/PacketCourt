@@ -48,6 +48,7 @@ def test_nemotron_cannot_invent_required_evidence_outside_bounded_investigation(
     assert result.agent_review.status == "COMPLETE"
     assert result.agent_review.evidence_request == ""
     assert result.agent_review.priority == "No additional claim-resolving evidence is required."
+    assert "no unresolved evidence" in result.agent_review.rationale.lower()
 
 
 def test_run_audit_preserves_nemotron_validation_error(monkeypatch):
