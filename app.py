@@ -18,6 +18,7 @@ ROOT = Path(__file__).parent
 sys.path.insert(0, str(ROOT / "src"))
 
 from packetcourt import audit_packet
+from packetcourt.models import AgentReview
 from packetcourt.ocr import extract_text, merge_extractions
 from packetcourt.remote_vision import extract_remote, is_configured
 from packetcourt.remote_nemotron import is_configured as nemotron_is_configured
@@ -50,16 +51,16 @@ def run_audit(front_text: str, back_text: str):
         "limitations": result.limitations,
     }
     try:
-        result.agent_review = nemotron_review(snapshot)
+        result.agent_review = AgentReview.model_validate(nemotron_review(snapshot))
         if result.agent_review.status == "COMPLETE" and not result.investigation.missing_evidence:
             result.agent_review.priority = "No additional claim-resolving evidence is required."
             result.agent_review.evidence_request = ""
     except Exception as exc:
-        result.agent_review = {
-            "status": "UNAVAILABLE",
-            "rationale": f"Nemotron review unavailable: {type(exc).__name__}",
-            "model": "nvidia/Nemotron-Mini-4B-Instruct",
-        }
+        result.agent_review = AgentReview(
+            status="UNAVAILABLE",
+            rationale=f"Nemotron review unavailable: {type(exc).__name__}: {exc}",
+            model="nvidia/Nemotron-Mini-4B-Instruct",
+        )
     return result
 
 

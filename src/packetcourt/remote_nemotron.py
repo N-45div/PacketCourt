@@ -24,4 +24,11 @@ def _client():
 
 def review(snapshot: dict) -> dict:
     result = _client().predict(json.dumps(snapshot), api_name="/predict")
-    return json.loads(result)
+    if isinstance(result, dict):
+        return result
+    if not isinstance(result, str):
+        raise TypeError(f"Unexpected Nemotron response type: {type(result).__name__}")
+    payload = json.loads(result)
+    if not isinstance(payload, dict):
+        raise TypeError(f"Unexpected Nemotron JSON type: {type(payload).__name__}")
+    return payload
