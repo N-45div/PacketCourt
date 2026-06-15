@@ -62,6 +62,7 @@ class ExpiryInfo(BaseModel):
     best_before: str | None = None
     instruction: str | None = None
     after_opening_instruction: str | None = None
+    visible_date_texts: list[str] = Field(default_factory=list)
     status: str = "Not enough label evidence"
 
 

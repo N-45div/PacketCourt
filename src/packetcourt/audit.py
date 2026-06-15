@@ -23,6 +23,17 @@ ADDED_SUGAR_TERMS = {
     "sucrose",
 }
 
+SWEETENER_TERMS = {
+    "sucralose",
+    "aspartame",
+    "acesulfame",
+    "saccharin",
+    "stevia",
+    "maltitol",
+    "sorbitol",
+    "erythritol",
+}
+
 
 def _ingredient_evidence(ingredients: list[str], matches: list[str]) -> list[Evidence]:
     return [Evidence(source="ingredient list", text=item) for item in matches]
@@ -30,6 +41,31 @@ def _ingredient_evidence(ingredients: list[str], matches: list[str]) -> list[Evi
 
 def _audit_claim(claim: str, back_text: str, ingredients: list[str], nutrition) -> ClaimAudit:
     lowered_ingredients = [item.lower() for item in ingredients]
+
+    if claim == "Sugar Free":
+        sweeteners = [
+            original
+            for original, lowered in zip(ingredients, lowered_ingredients)
+            if any(re.search(rf"\b{re.escape(term)}\b", lowered) for term in SWEETENER_TERMS)
+        ]
+        if nutrition.total_sugar_g is not None:
+            return ClaimAudit(
+                claim=claim,
+                verdict=Verdict.CONTEXT_MISSING,
+                summary="A sugar quantity is visible, but sugar-free claim compliance depends on the declared basis and applicable product rules.",
+                evidence=[Evidence(source="nutrition panel", text=f"Total sugar {nutrition.total_sugar_g:g}g ({nutrition.basis})")]
+                + _ingredient_evidence(ingredients, sweeteners),
+                caveat="Sweeteners are surfaced as context; their presence does not itself contradict a sugar-free claim.",
+                confidence="medium",
+            )
+        return ClaimAudit(
+            claim=claim,
+            verdict=Verdict.CANNOT_VERIFY,
+            summary="The packet claims sugar free, but no readable total-sugar quantity and measurement basis were supplied.",
+            evidence=[Evidence(source="front claim", text=claim)] + _ingredient_evidence(ingredients, sweeteners),
+            caveat="A readable nutrition panel is required. Sweeteners are relevant context but are not sugar.",
+            confidence="low",
+        )
 
     if claim == "No Added Sugar":
         matches = [
@@ -185,6 +221,24 @@ def _audit_claim(claim: str, back_text: str, ingredients: list[str], nutrition) 
                 confidence="high",
             )
 
+    meaningful_terms = [
+        token.lower()
+        for token in re.findall(r"[A-Za-z]{3,}", claim)
+        if token.lower() not in {"with", "extra", "real", "enriched", "fortified", "source", "contains"}
+    ]
+    evidence_matches = [
+        item for item in ingredients if any(term in item.lower() for term in meaningful_terms)
+    ]
+    if evidence_matches:
+        return ClaimAudit(
+            claim=claim,
+            verdict=Verdict.CONTEXT_MISSING,
+            summary="Related ingredient evidence is visible, but the packet does not provide enough quantified evidence to verify the full front claim.",
+            evidence=_ingredient_evidence(ingredients, evidence_matches),
+            caveat="PacketCourt will not infer quantity, quality, or nutritional significance from an ingredient name alone.",
+            confidence="medium",
+        )
+
     return ClaimAudit(
         claim=claim,
         verdict=Verdict.CANNOT_VERIFY,
@@ -240,6 +294,28 @@ def _persuasion_gap(claims: list[ClaimAudit], ingredients: list[str], whole_pack
                 evidence=[Evidence(source="claim interpretation", text="FSSAI registration is not a health score.")],
             )
         )
+    if "Sugar Free" in claim_names:
+        sweeteners = [
+            item
+            for item in ingredients
+            if any(re.search(rf"\b{re.escape(term)}\b", item, re.IGNORECASE) for term in SWEETENER_TERMS)
+        ]
+        maltodextrin = next((item for item in ingredients if "maltodextrin" in item.lower()), None)
+        if sweeteners or maltodextrin:
+            context = []
+            if maltodextrin:
+                context.append(f"the ingredient list begins with or includes “{maltodextrin}”")
+            if sweeteners:
+                context.append(f"sweetener evidence includes “{', '.join(sweeteners)}”")
+            findings.append(
+                PersuasionFinding(
+                    headline="Sugar free does not mean ingredient-context free.",
+                    front_impression="The front emphasizes the absence of sugar.",
+                    quiet_context="; ".join(context).capitalize() + ".",
+                    severity="medium",
+                    evidence=_ingredient_evidence(ingredients, ([maltodextrin] if maltodextrin else []) + sweeteners),
+                )
+            )
     return findings
 
 

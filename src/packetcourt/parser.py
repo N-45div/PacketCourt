@@ -9,6 +9,7 @@ from .models import ExpiryInfo, NutritionFacts, WholePacketNutrition
 
 CLAIM_PATTERNS: list[tuple[str, str]] = [
     ("High Protein", r"\bhigh[\s-]*protein\b"),
+    ("Sugar Free", r"\bsugar[\s-]*free\b"),
     ("No Added Sugar", r"\bno[\s-]*added[\s-]*sugar\b"),
     ("Multigrain", r"\bmulti[\s-]*grain\b"),
     ("100% Natural", r"\b100\s*%\s*natural\b"),
@@ -19,6 +20,12 @@ CLAIM_PATTERNS: list[tuple[str, str]] = [
     ("Whole Grain", r"\b(?:made\s+with\s+)?whole[\s-]*grains?\b"),
 ]
 
+GENERIC_CLAIM_TERMS = re.compile(
+    r"\b(?:free|extra|real|enriched|fortified|rich|source|natural|healthy|safe|pure|with)\b",
+    re.IGNORECASE,
+)
+NON_CLAIM_LINES = re.compile(r"\b(?:nutraceutical|brand|flavour|flavor)\b", re.IGNORECASE)
+
 
 def normalize_space(text: str) -> str:
     return re.sub(r"\s+", " ", text or "").strip()
@@ -26,7 +33,19 @@ def normalize_space(text: str) -> str:
 
 def extract_claims(front_text: str) -> list[str]:
     text = normalize_space(front_text).lower()
-    return [name for name, pattern in CLAIM_PATTERNS if re.search(pattern, text)]
+    claims = [name for name, pattern in CLAIM_PATTERNS if re.search(pattern, text)]
+    matched_patterns = [pattern for _, pattern in CLAIM_PATTERNS]
+    for raw_line in (front_text or "").splitlines():
+        line = normalize_space(raw_line).strip(" |•*-")
+        if (
+            3 <= len(line) <= 100
+            and GENERIC_CLAIM_TERMS.search(line)
+            and not NON_CLAIM_LINES.search(line)
+            and not any(re.search(pattern, line, re.IGNORECASE) for pattern in matched_patterns)
+            and line.lower() not in {claim.lower() for claim in claims}
+        ):
+            claims.append(line)
+    return claims
 
 
 def _number_after(label: str, text: str, unit: str) -> float | None:
@@ -89,7 +108,8 @@ def calculate_whole_packet(nutrition: NutritionFacts) -> WholePacketNutrition:
 
 def extract_ingredients(back_text: str) -> list[str]:
     match = re.search(
-        r"\bingredients?\s*:\s*(.+?)(?=\b(?:nutrition|allergen|contains|best before|mfd|pkd|manufactured|packed)\b|$)",
+        r"\bingredients?\s*:\s*(.+?)(?=\b(?:nutrition|allergen|contains|net\s*(?:weight|wt)|storage|directions?"
+        r"|after[\s-]*opening|best before|mfd|pkd|manufactured|packed|fssai|dates?|unit sale price)\b|$)",
         normalize_space(back_text),
         re.IGNORECASE,
     )
@@ -135,6 +155,17 @@ def _add_months(value: date, months: int) -> date:
 
 def parse_expiry(back_text: str) -> ExpiryInfo:
     text = normalize_space(back_text)
+    visible_dates = list(
+        dict.fromkeys(
+            match.group(0).upper()
+            for match in re.finditer(
+                r"\b(?:\d{1,2}[\s/\-.]+)?(?:JAN|FEB|MAR|APR|MAY|JUN|JUL|AUG|SEP|OCT|NOV|DEC)"
+                r"(?:[A-Z]*)[\s/\-.]+\d{2,4}\b",
+                text,
+                re.IGNORECASE,
+            )
+        )
+    )
     packed_match = re.search(
         r"\b(?:pkd|packed(?:\s+on)?|mfd|manufactured(?:\s+on)?)\s*[:\-]?\s*"
         r"(\d{1,2}[\s/\-.]+(?:\d{1,2}|[A-Za-z]{3,9})[\s/\-.]+\d{2,4})",
@@ -164,6 +195,11 @@ def parse_expiry(back_text: str) -> ExpiryInfo:
         status = f"Best-before evidence resolves to {best_before.isoformat()}"
     elif instruction and not packed:
         status = "Relative shelf-life found, but the starting date is missing"
+    elif visible_dates:
+        status = (
+            f"Visible date evidence found ({', '.join(visible_dates)}), but the label does not identify "
+            "which date is packing, manufacture, or expiry."
+        )
     else:
         status = "No resolvable best-before date found"
 
@@ -177,5 +213,6 @@ def parse_expiry(back_text: str) -> ExpiryInfo:
         best_before=best_before.isoformat() if best_before else None,
         instruction=instruction,
         after_opening_instruction=after_opening_match.group(0) if after_opening_match else None,
+        visible_date_texts=visible_dates,
         status=status,
     )

@@ -5,6 +5,7 @@ from .models import InvestigationPlan, InvestigationStep
 
 
 POLICY_TOOLS = {
+    "Sugar Free": "inspect_nutrition",
     "No Added Sugar": "inspect_ingredients",
     "Multigrain": "inspect_ingredients",
     "100% Natural": "apply_safety_boundary",
@@ -15,6 +16,16 @@ POLICY_TOOLS = {
     "Whole Grain": "inspect_ingredients",
     "High Protein": "inspect_nutrition",
 }
+
+def policy_tool_for(claim: str) -> str:
+    if claim in POLICY_TOOLS:
+        return POLICY_TOOLS[claim]
+    lowered = claim.lower()
+    if any(term in lowered for term in ("calcium", "dha", "protein", "sugar", "fat", "sodium")):
+        return "inspect_nutrition"
+    if any(term in lowered for term in ("real", "with", "contains", "ingredient", "grain", "natural")):
+        return "inspect_ingredients"
+    return "inspect_label_evidence"
 
 
 def build_investigation(
@@ -31,7 +42,7 @@ def build_investigation(
     for claim in claim_names:
         routed_tool, source = route_claim(claim)
         router_model = source if source != "deterministic fallback" else router_model
-        tool = routed_tool or POLICY_TOOLS[claim]
+        tool = routed_tool or policy_tool_for(claim)
         if tool in seen:
             continue
         seen.add(tool)
@@ -44,14 +55,14 @@ def build_investigation(
             )
         )
 
-    if claim_names and not ingredients and any(POLICY_TOOLS[name] == "inspect_ingredients" for name in claim_names):
+    if claim_names and not ingredients and any(policy_tool_for(name) == "inspect_ingredients" for name in claim_names):
         missing.append("A readable ingredient list")
-    if claim_names and nutrition.basis == "unknown" and any(POLICY_TOOLS[name] == "inspect_nutrition" for name in claim_names):
+    if claim_names and nutrition.basis == "unknown" and any(policy_tool_for(name) == "inspect_nutrition" for name in claim_names):
         missing.append("A readable nutrition panel with its measurement basis")
     if expiry.instruction and not expiry.packed_on:
         missing.append("The packing or manufacturing date needed to resolve relative shelf life")
 
-    if expiry.best_before or expiry.instruction or expiry.after_opening_instruction:
+    if expiry.best_before or expiry.instruction or expiry.after_opening_instruction or expiry.visible_date_texts:
         steps.append(
             InvestigationStep(
                 tool="resolve_dates",
@@ -59,6 +70,8 @@ def build_investigation(
                 status="completed" if expiry.best_before or expiry.after_opening_instruction else "needs evidence",
             )
         )
+    if expiry.visible_date_texts and not expiry.best_before:
+        missing.append("Labels identifying the visible dates as packed, manufactured, best-before, or expiry")
 
     stop_reason = (
         "Stopped with explicit missing-evidence requests."
