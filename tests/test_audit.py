@@ -104,6 +104,8 @@ def test_sugar_free_packet_surfaces_sweetener_and_requests_nutrition_panel():
     assert result.ingredients[-1] == "Vitamins and Mineral Mix"
     assert result.expiry.visible_date_texts == ["FEB 2024", "JUL 2025"]
     assert any("visible dates" in item.lower() for item in result.investigation.missing_evidence)
+    sugar_step = next(step for step in result.investigation.steps if "Sugar Free" in step.reason)
+    assert sugar_step.tool == "inspect_nutrition"
 
 
 def test_dynamic_front_claim_is_audited_instead_of_dropped():

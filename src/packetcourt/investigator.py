@@ -42,7 +42,13 @@ def build_investigation(
     for claim in claim_names:
         routed_tool, source = route_claim(claim)
         router_model = source if source != "deterministic fallback" else router_model
-        tool = routed_tool or policy_tool_for(claim)
+        expected_tool = policy_tool_for(claim)
+        if claim in POLICY_TOOLS and routed_tool and routed_tool != expected_tool:
+            tool = expected_tool
+            step_source = "policy guard over fine-tuned router"
+        else:
+            tool = routed_tool or expected_tool
+            step_source = "fine-tuned router" if routed_tool else "policy fallback"
         if tool in seen:
             continue
         seen.add(tool)
@@ -51,7 +57,7 @@ def build_investigation(
                 tool=tool,
                 reason=f"Required to audit the front claim: {claim}.",
                 status="completed",
-                source="fine-tuned router" if routed_tool else "policy fallback",
+                source=step_source,
             )
         )
 

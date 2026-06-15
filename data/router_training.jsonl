@@ -34,12 +34,22 @@
 {"text":"Not fried, only baked","label":"nutrition"}
 {"text":"Trans fat free","label":"nutrition"}
 {"text":"No added sweetener","label":"ingredients"}
+{"text":"Sugar Free","label":"nutrition"}
+{"text":"Zero sugar","label":"nutrition"}
+{"text":"Free from sugar","label":"nutrition"}
+{"text":"Real Badam","label":"ingredients"}
+{"text":"Made with real almonds","label":"ingredients"}
+{"text":"Enriched with Extra Calcium with DHA","label":"nutrition"}
 {"text":"Contains five grains","label":"ingredients"}
 {"text":"Made from whole wheat","label":"ingredients"}
 {"text":"No artificial preservatives","label":"ingredients"}
 {"text":"FSSAI licensed product","label":"license"}
 {"text":"FSSAI registration number","label":"license"}
 {"text":"Food safety license","label":"license"}
+{"text":"Food business operator license","label":"license"}
+{"text":"Food regulator license details","label":"license"}
+{"text":"Food safety registration number","label":"license"}
+{"text":"Licensing authority registration","label":"license"}
 {"text":"License number printed below","label":"license"}
 {"text":"Regulatory registration details","label":"license"}
 {"text":"Expiry date","label":"dates"}
