@@ -130,3 +130,45 @@ def test_multiple_photo_extractions_are_labeled_and_exact_duplicates_are_skipped
     assert text.count("HIGH PROTEIN") == 1
     assert "2 unique front photos" in status
     assert "Exact duplicate skipped" in images[1]["status"]
+
+
+def test_table_style_nutrition_values_are_calculated():
+    result = audit_packet(
+        "SUGAR FREE",
+        (
+            "Nutrition Information Per 100g | Protein (g) 12 | Total Sugars | g | 0 | "
+            "Added Sugar (g) 0 | Sodium (mg) 410 | Saturated Fat g 2.5 | Net Weight: 200g."
+        ),
+    )
+    assert result.nutrition.protein_g == 12
+    assert result.nutrition.total_sugar_g == 0
+    assert result.nutrition.sodium_mg == 410
+    assert result.whole_packet.protein_g == 24
+    assert result.whole_packet.total_sugar_g == 0
+    assert result.whole_packet.sodium_mg == 820
+
+
+def test_basis_and_packet_without_nutrient_rows_explain_the_real_missing_evidence():
+    result = audit_packet("SUGAR FREE", "Nutrition Information Per 100g. Net Weight: 200g.")
+    assert result.whole_packet.calculable is False
+    assert "no readable nutrient quantities" in result.whole_packet.explanation.lower()
+    assert any("nutrient quantities" in item.lower() for item in result.investigation.missing_evidence)
+
+
+def test_enrichment_claim_cites_visible_back_label_evidence():
+    result = audit_packet(
+        "Extra Calcium with DHA",
+        "Nutrition per 100g: Calcium 400mg, DHA 25mg. Net Weight: 200g.",
+    )
+    claim = by_claim(result, "Extra Calcium with DHA")
+    assert claim.verdict == Verdict.CONTEXT_MISSING
+    assert any("Calcium" in evidence.text for evidence in claim.evidence)
+
+
+def test_one_character_ocr_claim_mismatch_is_surfaced_conservatively():
+    result = audit_packet("Real Badar", "Ingredients: ** Maltodextrin (65%), Badam, Sucralose.")
+    claim = by_claim(result, "Real Badar")
+    assert claim.verdict == Verdict.CANNOT_VERIFY
+    assert claim.confidence == "low"
+    assert any(evidence.text == "Badam" for evidence in claim.evidence)
+    assert result.ingredients[0] == "Maltodextrin (65%)"

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import re
+from difflib import SequenceMatcher
 
 from .models import ClaimAudit, Evidence, PacketAudit, PersuasionFinding, Verdict
 from .investigator import build_investigation
@@ -221,6 +222,26 @@ def _audit_claim(claim: str, back_text: str, ingredients: list[str], nutrition) 
                 confidence="high",
             )
 
+    enrichment_terms = [
+        term
+        for term in ("calcium", "dha", "iron", "vitamin", "mineral", "zinc")
+        if term in claim.lower()
+    ]
+    enrichment_matches = [
+        match.group(0)
+        for term in enrichment_terms
+        for match in re.finditer(rf"\b{re.escape(term)}\b[^,.;\n]{{0,45}}", back_text, re.IGNORECASE)
+    ]
+    if enrichment_matches:
+        return ClaimAudit(
+            claim=claim,
+            verdict=Verdict.CONTEXT_MISSING,
+            summary="Related enrichment evidence is visible, but the supplied label does not establish the full front-of-pack impression.",
+            evidence=[Evidence(source="back label", text=text.strip()) for text in dict.fromkeys(enrichment_matches)],
+            caveat="A quantified nutrient declaration is required to assess the strength of an enrichment claim.",
+            confidence="medium",
+        )
+
     meaningful_terms = [
         token.lower()
         for token in re.findall(r"[A-Za-z]{3,}", claim)
@@ -228,6 +249,16 @@ def _audit_claim(claim: str, back_text: str, ingredients: list[str], nutrition) 
     ]
     evidence_matches = [
         item for item in ingredients if any(term in item.lower() for term in meaningful_terms)
+    ]
+    fuzzy_matches = [
+        item
+        for item in ingredients
+        if item not in evidence_matches
+        and any(
+            SequenceMatcher(None, term, token).ratio() >= 0.8
+            for term in meaningful_terms
+            for token in re.findall(r"[a-z]{4,}", item.lower())
+        )
     ]
     if evidence_matches:
         return ClaimAudit(
@@ -237,6 +268,15 @@ def _audit_claim(claim: str, back_text: str, ingredients: list[str], nutrition) 
             evidence=_ingredient_evidence(ingredients, evidence_matches),
             caveat="PacketCourt will not infer quantity, quality, or nutritional significance from an ingredient name alone.",
             confidence="medium",
+        )
+    if fuzzy_matches:
+        return ClaimAudit(
+            claim=claim,
+            verdict=Verdict.CANNOT_VERIFY,
+            summary="A possible one-character OCR match appears in the ingredient list, but the physical packet should be checked.",
+            evidence=_ingredient_evidence(ingredients, fuzzy_matches),
+            caveat="Near-matches are surfaced as possible OCR corrections, never treated as exact evidence.",
+            confidence="low",
         )
 
     return ClaimAudit(

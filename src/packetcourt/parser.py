@@ -49,9 +49,18 @@ def extract_claims(front_text: str) -> list[str]:
 
 
 def _number_after(label: str, text: str, unit: str) -> float | None:
-    pattern = rf"\b{label}\b[^0-9]{{0,24}}(\d+(?:\.\d+)?)\s*{unit}\b"
-    match = re.search(pattern, text, re.IGNORECASE)
-    return float(match.group(1)) if match else None
+    # Labels transcribed from nutrition tables commonly place the unit before
+    # the value: "Protein (g) 12" or "Sodium | mg | 410".
+    patterns = [
+        rf"\b{label}\b[^0-9]{{0,28}}(\d+(?:\.\d+)?)\s*{unit}\b",
+        rf"\b{label}\b[\s|:()\[\]\-]*{unit}[\s|:()\[\]\-]*(\d+(?:\.\d+)?)\b",
+        rf"\b{label}\b[\s|:()\[\]\-]+(\d+(?:\.\d+)?)\b",
+    ]
+    for pattern in patterns:
+        match = re.search(pattern, text, re.IGNORECASE)
+        if match:
+            return float(match.group(1))
+    return None
 
 
 def parse_nutrition(back_text: str) -> NutritionFacts:
@@ -88,6 +97,21 @@ def calculate_whole_packet(nutrition: NutritionFacts) -> WholePacketNutrition:
         )
     if multiplier is None:
         return WholePacketNutrition(explanation=explanation)
+    values = (
+        nutrition.protein_g,
+        nutrition.total_sugar_g,
+        nutrition.added_sugar_g,
+        nutrition.sodium_mg,
+        nutrition.saturated_fat_g,
+    )
+    if not any(value is not None for value in values):
+        return WholePacketNutrition(
+            multiplier=round(multiplier, 2),
+            explanation=(
+                f"Found {nutrition.basis} and a {nutrition.package_size_g:g}g packet, "
+                "but no readable nutrient quantities were extracted."
+            ),
+        )
 
     def scale(value: float | None) -> float | None:
         return round(value * multiplier, 1) if value is not None else None
@@ -116,7 +140,7 @@ def extract_ingredients(back_text: str) -> list[str]:
     )
     if not match:
         return []
-    return [item.strip(" .") for item in re.split(r"[,;]", match.group(1)) if item.strip()]
+    return [item.strip(" .*_") for item in re.split(r"[,;]", match.group(1)) if item.strip(" .*_")]
 
 
 def _parse_date(value: str) -> date | None:

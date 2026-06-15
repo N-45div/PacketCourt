@@ -17,6 +17,9 @@ PROMPTS = {
         "Transcribe the visible food-label evidence from this package image. Focus on the "
         "ingredient list, nutrition values with their basis, net weight, FSSAI license, "
         "manufacturing or packing date, best-before or use-by date, and after-opening instructions. "
+        "For nutrition tables, preserve every visible row as 'nutrient name | unit | value' and "
+        "include the declared basis such as per 100g or per serving. Do not summarize or omit rows "
+        "whose value is zero. "
         "Return only visibly printed evidence. Do not explain or infer anything."
     ),
 }

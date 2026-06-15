@@ -115,6 +115,7 @@ function render(data) {
     ["Whole-packet sodium", packet.sodium_mg == null ? "Not calculable" : `${packet.sodium_mg}mg`],
   ];
   $("#nutrition-grid").innerHTML = facts.map(([key, value]) => `<div><span>${key}</span><b>${value}</b></div>`).join("");
+  $("#nutrition-explanation").textContent = packet.explanation;
   $("#expiry-status").textContent = data.expiry.status;
   $("#opening-status").textContent = data.expiry.after_opening_instruction
     ? `After opening: ${data.expiry.after_opening_instruction}`

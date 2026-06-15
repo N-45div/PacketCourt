@@ -65,6 +65,17 @@ def build_investigation(
         missing.append("A readable ingredient list")
     if claim_names and nutrition.basis == "unknown" and any(policy_tool_for(name) == "inspect_nutrition" for name in claim_names):
         missing.append("A readable nutrition panel with its measurement basis")
+    elif claim_names and any(policy_tool_for(name) == "inspect_nutrition" for name in claim_names) and not any(
+        value is not None
+        for value in (
+            nutrition.protein_g,
+            nutrition.total_sugar_g,
+            nutrition.added_sugar_g,
+            nutrition.sodium_mg,
+            nutrition.saturated_fat_g,
+        )
+    ):
+        missing.append("Readable nutrient quantities from the nutrition table")
     if expiry.instruction and not expiry.packed_on:
         missing.append("The packing or manufacturing date needed to resolve relative shelf life")
 

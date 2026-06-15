@@ -17,7 +17,9 @@ PROMPTS = {
     ),
     "back": (
         "Transcribe only visibly printed food-label evidence. Focus on ingredients, nutrition values "
-        "and basis, net weight, FSSAI license, dates, and after-opening instructions. Do not infer."
+        "and basis, net weight, FSSAI license, dates, and after-opening instructions. For nutrition "
+        "tables, preserve every visible row as 'nutrient name | unit | value', include the declared "
+        "basis, and do not omit zero values. Do not summarize or infer."
     ),
 }
 

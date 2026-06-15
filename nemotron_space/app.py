@@ -19,6 +19,8 @@ compact JSON with these keys:
 - priority: one short sentence naming the most important next action
 - evidence_request: one short sentence, or an empty string
 - rationale: one short sentence grounded only in the supplied investigation
+Prioritize missing evidence required to resolve front-of-pack claims. Treat
+expiry evidence as secondary unless expiry or shelf life is itself a front claim.
 """
 
 
