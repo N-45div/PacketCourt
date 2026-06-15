@@ -104,7 +104,8 @@ def test_sugar_free_packet_surfaces_sweetener_and_requests_nutrition_panel():
     assert any("sugar free" in finding.headline.lower() for finding in result.persuasion_gap)
     assert result.ingredients[-1] == "Vitamins and Mineral Mix"
     assert result.expiry.visible_date_texts == ["FEB 2024", "JUL 2025"]
-    assert any("visible dates" in item.lower() for item in result.investigation.missing_evidence)
+    assert "visible date evidence" in result.expiry.status.lower()
+    assert not any("visible dates" in item.lower() for item in result.investigation.missing_evidence)
     sugar_step = next(step for step in result.investigation.steps if "Sugar Free" in step.reason)
     assert sugar_step.tool == "inspect_nutrition"
 
@@ -163,6 +164,12 @@ def test_enrichment_claim_cites_visible_back_label_evidence():
     claim = by_claim(result, "Extra Calcium with DHA")
     assert claim.verdict == Verdict.CONTEXT_MISSING
     assert any("Calcium" in evidence.text for evidence in claim.evidence)
+
+
+def test_ambiguous_dates_are_supplementary_when_not_a_front_claim():
+    result = audit_packet("SUGAR FREE", "Nutrition per 100g: Total Sugars 0g. Net Weight 200g. FEB 2024 JUL 2025.")
+    assert result.expiry.visible_date_texts == ["FEB 2024", "JUL 2025"]
+    assert not any("date" in item.lower() for item in result.investigation.missing_evidence)
 
 
 def test_one_character_ocr_claim_mismatch_is_surfaced_conservatively():

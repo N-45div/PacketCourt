@@ -87,7 +87,12 @@ def build_investigation(
                 status="completed" if expiry.best_before or expiry.after_opening_instruction else "needs evidence",
             )
         )
-    if expiry.visible_date_texts and not expiry.best_before:
+    date_claim_present = any(
+        term in claim.lower()
+        for claim in claim_names
+        for term in ("expiry", "expires", "best before", "use by", "shelf life", "fresh for")
+    )
+    if expiry.visible_date_texts and not expiry.best_before and date_claim_present:
         missing.append("Labels identifying the visible dates as packed, manufactured, best-before, or expiry")
 
     stop_reason = (
