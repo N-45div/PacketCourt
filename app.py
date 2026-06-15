@@ -2,8 +2,11 @@ from __future__ import annotations
 
 import os
 import sys
+import json
+from datetime import datetime, timezone
 from pathlib import Path
 from tempfile import NamedTemporaryFile
+from uuid import uuid4
 
 import gradio as gr
 import uvicorn
@@ -26,6 +29,12 @@ from packetcourt.vlm import model_status
 class AuditRequest(BaseModel):
     front_text: str
     back_text: str
+
+
+class FeedbackRequest(BaseModel):
+    verdict: str
+    correction: str = ""
+    audit: dict
 
 
 def run_audit(front_text: str, back_text: str):
@@ -110,6 +119,67 @@ def model() -> dict:
 @app.post("/api/audit")
 def audit(request: AuditRequest) -> dict:
     return run_audit(request.front_text, request.back_text).model_dump(mode="json")
+
+
+@app.post("/api/feedback")
+def feedback(request: FeedbackRequest) -> dict:
+    if request.verdict not in {"accurate", "needs_correction"}:
+        return {"status": "REJECTED", "message": "Choose accurate or needs correction."}
+    if request.verdict == "needs_correction" and len(request.correction.strip()) < 8:
+        return {"status": "REJECTED", "message": "Explain the correction so it can be reviewed."}
+
+    record_id = str(uuid4())
+    record = {
+        "id": record_id,
+        "created_at": datetime.now(timezone.utc).isoformat(),
+        "verdict": request.verdict,
+        "correction": request.correction.strip()[:1200],
+        "front_text": str(request.audit.get("front_text", ""))[:3000],
+        "back_text": str(request.audit.get("back_text", ""))[:9000],
+        "claims": request.audit.get("claims", []),
+        "investigation": request.audit.get("investigation", {}),
+        "nemotron_review": request.audit.get("agent_review", {}),
+        "proposed_router_examples": [
+            {
+                "text": claim.get("claim", ""),
+                "candidate_tools": [
+                    step.get("tool", "")
+                    for step in request.audit.get("investigation", {}).get("steps", [])
+                ],
+            }
+            for claim in request.audit.get("claims", [])
+        ],
+        "review_status": "pending_human_review",
+        "training_eligible": False,
+        "learning_policy": "Only approved corrections enter the next evidence-router fine-tune.",
+    }
+    dataset_id = os.getenv("PACKETCOURT_FEEDBACK_DATASET")
+    if not dataset_id:
+        return {
+            "status": "UNAVAILABLE",
+            "message": "The community learning queue is not configured on this deployment.",
+        }
+    try:
+        from huggingface_hub import HfApi
+
+        HfApi().upload_file(
+            path_or_fileobj=json.dumps(record, indent=2).encode(),
+            path_in_repo=f"feedback/{record_id}.json",
+            repo_id=dataset_id,
+            repo_type="dataset",
+            commit_message=f"feedback: queue PacketCourt review {record_id[:8]}",
+        )
+    except Exception as exc:
+        return {
+            "status": "UNAVAILABLE",
+            "message": f"Feedback could not be persisted: {type(exc).__name__}",
+        }
+    return {
+        "status": "QUEUED",
+        "id": record_id,
+        "message": "Review queued. It will become training data only after evidence review.",
+        "dataset": f"https://huggingface.co/datasets/{dataset_id}",
+    }
 
 
 @app.post("/api/ocr")

@@ -7,6 +7,8 @@ const verdictClass = {
   "TECHNICALLY TRUE, CONTEXT MISSING": "context",
   "CANNOT VERIFY": "unknown",
 };
+let currentAudit = null;
+let feedbackVerdict = "";
 
 function setMode(mode) {
   $$(".mode-switch button").forEach((button) => button.classList.toggle("active", button.dataset.mode === mode));
@@ -46,6 +48,7 @@ function escapeHtml(value = "") {
 }
 
 function render(data) {
+  currentAudit = data;
   $("#claim-count").textContent = data.claims.length;
   $("#router-model").textContent = data.investigation.router_model;
   $("#agent-steps").innerHTML = data.investigation.steps.map((step, index) => `
@@ -102,6 +105,30 @@ function render(data) {
   $("#results").classList.remove("hidden");
   $("#results").scrollIntoView({ behavior: "smooth" });
 }
+
+$$("[data-feedback]").forEach((button) => button.addEventListener("click", () => {
+  feedbackVerdict = button.dataset.feedback;
+  $$("[data-feedback]").forEach((choice) => choice.classList.toggle("active", choice === button));
+}));
+
+$("#submit-feedback").addEventListener("click", async () => {
+  if (!currentAudit || !feedbackVerdict) {
+    $("#feedback-status").textContent = "Run an audit and choose a review outcome first.";
+    return;
+  }
+  $("#feedback-status").textContent = "Packaging evidence review...";
+  const response = await fetch("api/feedback", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      verdict: feedbackVerdict,
+      correction: $("#feedback-correction").value,
+      audit: currentAudit,
+    }),
+  });
+  const result = await response.json();
+  $("#feedback-status").textContent = result.message;
+});
 
 $("#audit-text").addEventListener("click", async () => {
   $("#audit-text").textContent = "Examining evidence...";

@@ -116,6 +116,22 @@
         <article class="date-card"><p class="kicker">DATE EVIDENCE</p><h3 id="expiry-status"></h3><p id="opening-status"></p><p>Expiry interpretation is evidence, not a food-safety guarantee.</p></article>
       </div>
       <details><summary>View machine-readable evidence case</summary><pre id="raw-json"></pre></details>
+      <section class="feedback-agent">
+        <div>
+          <p class="kicker">COMMUNITY REVIEW AGENT</p>
+          <h3>Help the next audit get sharper.</h3>
+          <p>Corrections enter a public review queue with this audit's evidence, router path, and Nemotron review. They never retrain production models without approval.</p>
+        </div>
+        <div class="feedback-controls">
+          <div class="feedback-choice">
+            <button class="button quiet" data-feedback="accurate">This audit is accurate</button>
+            <button class="button quiet" data-feedback="needs_correction">This needs correction</button>
+          </div>
+          <textarea id="feedback-correction" placeholder="What did PacketCourt miss or misread? Cite the packet evidence."></textarea>
+          <button class="button dark" id="submit-feedback">Queue evidence review <span>→</span></button>
+          <span id="feedback-status"></span>
+        </div>
+      </section>
     </section>
 
     <section class="method">

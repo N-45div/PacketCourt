@@ -32,6 +32,12 @@ verdicts instead of an unexplained health score.
 
 **Open PacketCourt:** https://build-small-hackathon-packetcourt.hf.space/
 
+PacketCourt also includes a correction-driven Community Review Agent. User
+feedback is bundled with the original evidence, investigation path, and
+Nemotron review in a public queue. To prevent feedback poisoning, corrections
+must be evidence-reviewed before they become eligible for the next router
+fine-tune.
+
 ## Why PacketCourt
 
 A packet may lead with `HIGH PROTEIN`, `MULTIGRAIN`, or `100% NATURAL` while
@@ -162,6 +168,7 @@ Current deterministic evaluation result:
 - Public transparent agent traces: https://huggingface.co/datasets/build-small-hackathon/packetcourt-traces
 - Fine-tuned evidence router: https://huggingface.co/build-small-hackathon/packetcourt-evidence-router
 - Public router training set: https://huggingface.co/datasets/build-small-hackathon/packetcourt-router-training
+- Public community feedback queue: https://huggingface.co/datasets/build-small-hackathon/packetcourt-community-feedback
 - Public Field Notes report: https://huggingface.co/datasets/build-small-hackathon/packetcourt-field-notes
 - Public Codex-attributed GitHub repository: https://github.com/N-45div/PacketCourt
 
