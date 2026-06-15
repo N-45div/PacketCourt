@@ -34,6 +34,10 @@ verdicts instead of an unexplained health score.
 
 **Read the Community Article:** https://huggingface.co/blog/build-small-hackathon/packetcourtarticle
 
+**Watch the demo:** https://youtu.be/NCc4AZwypeA
+
+**Social post:** https://x.com/godlovesu_n/status/2066615486339744199
+
 PacketCourt also includes a correction-driven Community Review Agent. User
 feedback is bundled with the original evidence, investigation path, and
 Nemotron review in a public queue. To prevent feedback poisoning, corrections
