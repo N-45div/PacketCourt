@@ -60,20 +60,21 @@
       <div class="mode-panel active" id="mode-photos">
         <div class="upload-grid">
           <label class="upload-card">
-            <input type="file" id="front-file" accept="image/*" capture="environment">
+            <input type="file" id="front-file" accept="image/*" capture="environment" multiple>
             <div class="upload-preview" id="front-preview"><span class="upload-icon">F</span></div>
-            <div><b>Front of packet</b><span>Claims, badges and promises</span></div>
-            <strong>Choose photo</strong>
+            <div><b>Front and side claims</b><span>Claims, badges and promises · up to 6 photos</span></div>
+            <strong id="front-count">Add photos</strong>
           </label>
           <label class="upload-card">
-            <input type="file" id="back-file" accept="image/*" capture="environment">
+            <input type="file" id="back-file" accept="image/*" capture="environment" multiple>
             <div class="upload-preview" id="back-preview"><span class="upload-icon">B</span></div>
-            <div><b>Back of packet</b><span>Ingredients, nutrition and dates</span></div>
-            <strong>Choose photo</strong>
+            <div><b>Back and side evidence</b><span>Ingredients, nutrition, dates and directions · up to 6 photos</span></div>
+            <strong id="back-count">Add photos</strong>
           </label>
         </div>
-        <button class="button dark wide" id="read-photos">Read both label photos <span>→</span></button>
-        <p class="status-line" id="ocr-status">Images stay inside this private Space while the case is processed.</p>
+        <button class="button dark wide" id="read-photos">Read all packet photos <span>→</span></button>
+        <button class="button quiet wide" id="clear-photos">Clear selected photos</button>
+        <p class="status-line" id="ocr-status">Add close photos of every panel. Reopen the camera picker to add another angle.</p>
       </div>
 
       <div class="mode-panel" id="mode-text">

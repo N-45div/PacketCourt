@@ -18,16 +18,34 @@ function setMode(mode) {
 $$(".mode-switch button").forEach((button) => button.addEventListener("click", () => setMode(button.dataset.mode)));
 $$("[data-scroll]").forEach((button) => button.addEventListener("click", () => $(`#${button.dataset.scroll}`).scrollIntoView()));
 
-function preview(input, target) {
+const photoSets = { front: [], back: [] };
+
+function preview(input, target, side) {
   input.addEventListener("change", () => {
-    const file = input.files[0];
-    if (!file) return;
+    const incoming = [...input.files];
+    if (!incoming.length) return;
+    const available = Math.max(0, 6 - photoSets[side].length);
+    photoSets[side].push(...incoming.slice(0, available));
+    const file = photoSets[side][photoSets[side].length - 1];
     target.style.backgroundImage = `url(${URL.createObjectURL(file)})`;
     target.innerHTML = "";
+    $(`#${side}-count`).textContent = `${photoSets[side].length} photo${photoSets[side].length === 1 ? "" : "s"} · add more`;
+    input.value = "";
   });
 }
-preview($("#front-file"), $("#front-preview"));
-preview($("#back-file"), $("#back-preview"));
+preview($("#front-file"), $("#front-preview"), "front");
+preview($("#back-file"), $("#back-preview"), "back");
+
+$("#clear-photos").addEventListener("click", () => {
+  photoSets.front.length = 0;
+  photoSets.back.length = 0;
+  [["front", "F"], ["back", "B"]].forEach(([side, label]) => {
+    $(`#${side}-preview`).style.backgroundImage = "";
+    $(`#${side}-preview`).innerHTML = `<span class="upload-icon">${label}</span>`;
+    $(`#${side}-count`).textContent = "Add photos";
+  });
+  $("#ocr-status").textContent = "Selected photos cleared.";
+});
 
 async function runAudit(frontText, backText) {
   const response = await fetch("api/audit", {
@@ -139,15 +157,15 @@ $("#audit-text").addEventListener("click", async () => {
 
 $("#read-photos").addEventListener("click", async () => {
   const form = new FormData();
-  if ($("#front-file").files[0]) form.append("front", $("#front-file").files[0]);
-  if ($("#back-file").files[0]) form.append("back", $("#back-file").files[0]);
-  $("#ocr-status").textContent = "Reading label evidence...";
+  photoSets.front.forEach((file) => form.append("fronts", file));
+  photoSets.back.forEach((file) => form.append("backs", file));
+  $("#ocr-status").textContent = `Reading ${photoSets.front.length + photoSets.back.length} packet photos...`;
   try {
     const response = await fetch("api/ocr", { method: "POST", body: form });
     const result = await response.json();
     $("#front-text").value = result.front.text;
     $("#back-text").value = result.back.text;
-    $("#ocr-status").textContent = `${result.front.status} ${result.back.status}`;
+    $("#ocr-status").textContent = `${result.front.status} ${result.back.status} Review merged evidence before trial.`;
     setMode("text");
   } catch (error) { $("#ocr-status").textContent = "OCR failed. Paste the label text to continue."; }
 });

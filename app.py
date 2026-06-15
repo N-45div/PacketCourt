@@ -18,7 +18,7 @@ ROOT = Path(__file__).parent
 sys.path.insert(0, str(ROOT / "src"))
 
 from packetcourt import audit_packet
-from packetcourt.ocr import extract_text
+from packetcourt.ocr import extract_text, merge_extractions
 from packetcourt.remote_vision import extract_remote, is_configured
 from packetcourt.remote_nemotron import is_configured as nemotron_is_configured
 from packetcourt.remote_nemotron import review as nemotron_review
@@ -182,20 +182,33 @@ def feedback(request: FeedbackRequest) -> dict:
     }
 
 
-@app.post("/api/ocr")
-async def ocr(front: UploadFile | None = File(default=None), back: UploadFile | None = File(default=None)) -> dict:
-    result: dict[str, dict[str, str]] = {}
-    for name, upload in (("front", front), ("back", back)):
-        if not upload:
-            result[name] = {"text": "", "status": "No image supplied."}
-            continue
+async def _read_uploads(uploads: list[UploadFile], side: str) -> dict:
+    extracted: list[tuple[str, str]] = []
+    for upload in uploads[:6]:
         suffix = Path(upload.filename or "image.jpg").suffix or ".jpg"
         with NamedTemporaryFile(suffix=suffix) as temp:
             temp.write(await upload.read())
             temp.flush()
-            text, status = extract_text(temp.name, name, extract_remote if is_configured() else None)
-        result[name] = {"text": text, "status": status}
-    return result
+            extracted.append(extract_text(temp.name, side, extract_remote if is_configured() else None))
+    text, status, images = merge_extractions(extracted, side)
+    if len(uploads) > 6:
+        status += f" Only the first 6 of {len(uploads)} photos were processed."
+    return {"text": text, "status": status, "images": images}
+
+
+@app.post("/api/ocr")
+async def ocr(
+    fronts: list[UploadFile] | None = File(default=None),
+    backs: list[UploadFile] | None = File(default=None),
+    front: UploadFile | None = File(default=None),
+    back: UploadFile | None = File(default=None),
+) -> dict:
+    front_uploads = list(fronts or []) + ([front] if front else [])
+    back_uploads = list(backs or []) + ([back] if back else [])
+    return {
+        "front": await _read_uploads(front_uploads, "front"),
+        "back": await _read_uploads(back_uploads, "back"),
+    }
 
 
 app = gr.mount_gradio_app(app, build_gradio_engine(), path="/engine")

@@ -109,7 +109,8 @@ def calculate_whole_packet(nutrition: NutritionFacts) -> WholePacketNutrition:
 def extract_ingredients(back_text: str) -> list[str]:
     match = re.search(
         r"\bingredients?\s*:\s*(.+?)(?=\b(?:nutrition|allergen|contains|net\s*(?:weight|wt)|storage|directions?"
-        r"|after[\s-]*opening|best before|mfd|pkd|manufactured|packed|fssai|dates?|unit sale price)\b|$)",
+        r"|after[\s-]*opening|best before|mfd|pkd|manufactured|packed|fssai|dates?|unit sale price)\b"
+        r"|\[(?:front|back)\s+photo\s+\d+\]|$)",
         normalize_space(back_text),
         re.IGNORECASE,
     )

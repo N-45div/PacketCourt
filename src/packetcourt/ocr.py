@@ -7,6 +7,34 @@ from PIL import Image
 from .vlm import extract_with_vlm, is_enabled
 
 
+def merge_extractions(results: list[tuple[str, str]], side: str) -> tuple[str, str, list[dict[str, str]]]:
+    unique_texts: set[str] = set()
+    merged: list[str] = []
+    images: list[dict[str, str]] = []
+    readable = 0
+    for index, (text, status) in enumerate(results, start=1):
+        clean = text.strip()
+        duplicate = bool(clean and clean in unique_texts)
+        if clean and not duplicate:
+            unique_texts.add(clean)
+            merged.append(f"[{side.title()} photo {index}]\n{clean}")
+            readable += 1
+        images.append(
+            {
+                "photo": str(index),
+                "status": f"{status} Exact duplicate skipped." if duplicate else status,
+                "text": clean,
+            }
+        )
+    status = (
+        f"Read {readable} unique {side} photo{'s' if readable != 1 else ''} "
+        f"from {len(results)} supplied."
+        if results
+        else f"No {side} photos supplied."
+    )
+    return "\n\n".join(merged), status, images
+
+
 def extract_text(image_path: str | None, side: str = "back", vlm_extractor=None) -> tuple[str, str]:
     if not image_path:
         return "", "No image supplied."

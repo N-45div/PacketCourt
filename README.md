@@ -130,6 +130,7 @@ PacketCourt uses four deliberately conservative verdicts:
 ## Product Surface
 
 - Phone-friendly front and back photo capture
+- Additive multi-angle capture for up to six front/side and six back/side photos
 - OpenBMB small-model label transcription with Tesseract fallback
 - Paste-text workflow for difficult or damaged labels
 - Prepared cases for an immediate product walkthrough

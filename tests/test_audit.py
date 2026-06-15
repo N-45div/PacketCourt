@@ -1,5 +1,6 @@
 from packetcourt import audit_packet
 from packetcourt.models import Verdict
+from packetcourt.ocr import merge_extractions
 
 
 def by_claim(result, name):
@@ -113,3 +114,19 @@ def test_dynamic_front_claim_is_audited_instead_of_dropped():
     claim = by_claim(result, "Real Badam")
     assert claim.verdict == Verdict.CONTEXT_MISSING
     assert any("Badam" in evidence.text for evidence in claim.evidence)
+
+
+def test_multiple_photo_extractions_are_labeled_and_exact_duplicates_are_skipped():
+    text, status, images = merge_extractions(
+        [
+            ("HIGH PROTEIN", "read one"),
+            ("HIGH PROTEIN", "read duplicate"),
+            ("REAL BADAM", "read another panel"),
+        ],
+        "front",
+    )
+    assert "[Front photo 1]" in text
+    assert "[Front photo 3]" in text
+    assert text.count("HIGH PROTEIN") == 1
+    assert "2 unique front photos" in status
+    assert "Exact duplicate skipped" in images[1]["status"]
